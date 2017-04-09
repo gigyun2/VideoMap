@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0099cc"
-    tools:context="com.example.videomaps.VideoActivity">
+    tools:context="com.example.videomaps.PlayActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -57,7 +57,7 @@
                         android:layout_height="100dp" />
 
                     <TextView
-                        android:id="@+id/title"
+                        android:id="@+id/location"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="10dp"

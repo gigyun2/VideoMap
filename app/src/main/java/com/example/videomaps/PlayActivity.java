@@ -18,14 +18,25 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class VideoActivity extends AppCompatActivity {
+public class PlayActivity extends AppCompatActivity {
+
+    private GoogleMap mMap;
+    private MapView mMapView;
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -96,20 +107,23 @@ public class VideoActivity extends AppCompatActivity {
         }
     };
 
+
+    private SimpleExoPlayerView simpleExoPlayerView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_video);
+        setContentView(R.layout.activity_play);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
         mVisible = true;
-        //mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
-
+        simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
 
         // 1. Create a default TrackSelector
         Handler mainHandler = new Handler();
@@ -126,6 +140,7 @@ public class VideoActivity extends AppCompatActivity {
         SimpleExoPlayer player =
                 ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
 
+
         // Bind the player to the view.
         simpleExoPlayerView.setPlayer(player);
 
@@ -140,7 +155,24 @@ public class VideoActivity extends AppCompatActivity {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        mMapView = (MapView) findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                setUpMap(googleMap);
+            }
+        });
+    }
+
+    private void setUpMap(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Add a marker in Sydney and move the camera
+        LatLng sydney = new LatLng(-40, 151);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
     @Override
