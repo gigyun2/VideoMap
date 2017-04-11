@@ -1,50 +1,148 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0099cc"
     tools:context="com.example.videomaps.RecordActivity">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-    <TextView
-        android:id="@+id/fullscreen_content"
+    <SurfaceView
+        android:id="@+id/svCam"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:keepScreenOn="true"
-        android:text="@string/dummy_content"
-        android:textColor="#33b5e5"
-        android:textSize="50sp"
-        android:textStyle="bold" />
+        android:layout_gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
-    <!-- This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows. -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
+    <ImageButton
+        android:id="@+id/btnRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/camera_record" />
 
-        <LinearLayout
-            android:id="@+id/fullscreen_content_controls"
-            style="?metaButtonBarStyle"
+    <ImageButton
+        android:id="@+id/btnLocation"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@null"
+        android:src="@mipmap/camera_location"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="10dp" />
+
+    <ImageButton
+        android:id="@+id/btnSwitch"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+
+        android:background="@null"
+        android:src="@mipmap/camera_switch"
+        android:layout_below="@+id/btnLocation"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/cardLoc"
+        style="@style/CardView"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:alpha="0.85"
+        app:cardBackgroundColor="@color/cardview_light_background"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="4dp"
+        android:layout_alignTop="@+id/btnLocation"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal"
-            tools:ignore="UselessParent">
+            android:layout_height="82dp">
 
-            <Button
-                android:id="@+id/dummy_button"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="0dp"
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="163dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                tools:context="com.example.videomaps.RecordActivity" />
+
+            <TextView
+                android:id="@+id/lblLang"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/dummy_button" />
+                android:layout_marginTop="14dp"
+                android:text="Latitude\t :"
+                android:layout_alignParentTop="true"
+                android:layout_alignLeft="@+id/lblLong"
+                android:layout_alignStart="@+id/lblLong" />
 
-        </LinearLayout>
-    </FrameLayout>
+            <TextView
+                android:id="@+id/lblLong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/lblLang"
+                android:layout_toRightOf="@+id/map"
+                android:text="Longitude :"
+                android:layout_marginLeft="4dp"/>
 
-</FrameLayout>
+            <TextView
+                android:id="@+id/lblLoc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/lblLong"
+                android:layout_alignRight="@+id/lblLong"
+                android:layout_below="@+id/lblLong"
+                android:text="Location\t :"
+                android:layout_alignLeft="@+id/lblLong"
+                android:layout_alignStart="@+id/lblLong" />
+
+            <TextView
+                android:id="@+id/txtLang"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:text="NULL"
+                android:layout_alignBaseline="@+id/lblLang"
+                android:layout_alignBottom="@+id/lblLang"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@+id/lblLong"
+                android:layout_marginRight="4dp"
+                android:layout_toRightOf="@+id/lblLong" />
+
+            <TextView
+                android:id="@+id/txtLong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txtLang"
+                android:gravity="start"
+                android:text="NULL"
+                android:layout_toRightOf="@+id/lblLong"
+                android:layout_alignRight="@+id/txtLang"
+                android:layout_alignEnd="@+id/txtLang" />
+
+            <TextView
+                android:id="@+id/txtLoc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txtLong"
+                android:gravity="start"
+                android:text="NULL"
+                android:layout_toRightOf="@+id/lblLoc"
+                android:layout_alignRight="@+id/txtLong"
+                android:layout_alignEnd="@+id/txtLong" />
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
+
+
+</RelativeLayout>

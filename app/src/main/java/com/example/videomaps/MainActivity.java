@@ -1,19 +1,22 @@
 package com.example.videomaps;
 
+import android.app.AlertDialog;
+import android.content.*;
+import android.location.*;
+import android.os.Handler;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.*;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.*;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
-
     private GoogleMap mMap;
-
+    private boolean doubleBackToExitPressedOnce = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,11 +39,36 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        ImageButton btnRecord=(ImageButton)findViewById(R.id.btnRecord);
+        btnRecord.setOnClickListener(btnRecordListener);
         mMap = googleMap;
-
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-40, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
+
+    private ImageButton.OnClickListener btnRecordListener=new ImageButton.OnClickListener(){
+        public void onClick(View V){
+            Intent actRecord=new Intent();
+            actRecord.setClass(MainActivity.this,RecordActivity.class);
+            startActivity(actRecord);
+        }
+    };
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            ActivityCompat.finishAffinity(this);
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        android.os.Process.killProcess(android.os.Process.myPid());
+        Toast.makeText(this, "Still working", Toast.LENGTH_SHORT).show();
+    }
+
 }

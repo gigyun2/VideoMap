@@ -1,8 +1,5 @@
 <resources>
-    <string name="app_name">VideoMaps</string>
+    <string name="app_name">Memorial Video Maps</string>
     <string name="title_activity_main">Memorial Video Maps</string>
-
     <string name="title_activity_record">RecordActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>
