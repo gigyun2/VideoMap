@@ -1,148 +1,97 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.videomaps.RecordActivity">
+    android:orientation="vertical"
+    tools:context=".RecordActivity">
 
-    <SurfaceView
-        android:id="@+id/svCam"
+    <TextureView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/surface_view" />
+
+    <!-- This FrameLayout insets its children based on system windows using
+             android:fitsSystemWindows. -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <ImageButton
-        android:id="@+id/btnRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="@null"
-        android:scaleType="fitCenter"
-        android:src="@mipmap/camera_record" />
-
-    <ImageButton
-        android:id="@+id/btnLocation"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="@null"
-        android:src="@mipmap/camera_location"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="10dp" />
-
-    <ImageButton
-        android:id="@+id/btnSwitch"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-
-        android:background="@null"
-        android:src="@mipmap/camera_switch"
-        android:layout_below="@+id/btnLocation"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/cardLoc"
-        style="@style/CardView"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:alpha="0.85"
-        app:cardBackgroundColor="@color/cardview_light_background"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="4dp"
-        android:layout_alignTop="@+id/btnLocation"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:fitsSystemWindows="true">
 
         <RelativeLayout
+            android:id="@+id/fullscreen_content_controls"
+            style="?metaButtonBarStyle"
             android:layout_width="match_parent"
-            android:layout_height="82dp">
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom|center_horizontal"
+            android:orientation="horizontal"
+            tools:ignore="UselessParent">
 
-            <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="163dp"
-                android:layout_height="match_parent"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                tools:context="com.example.videomaps.RecordActivity" />
-
-            <TextView
-                android:id="@+id/lblLang"
+            <ImageButton
+                android:id="@+id/button_capture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="Latitude\t :"
-                android:layout_alignParentTop="true"
-                android:layout_alignLeft="@+id/lblLong"
-                android:layout_alignStart="@+id/lblLong" />
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@android:color/transparent"
+                android:elevation="5dp"
+                android:foregroundGravity="bottom|center_horizontal"
+                android:minHeight="70dp"
+                android:minWidth="70dp"
+                android:onClick="onCaptureClick"
+                android:scaleType="fitXY"
+                app:srcCompat="@mipmap/camera_record"
+                android:layout_margin="10dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true" />
 
             <TextView
-                android:id="@+id/lblLong"
+                android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/lblLang"
-                android:layout_toRightOf="@+id/map"
-                android:text="Longitude :"
-                android:layout_marginLeft="4dp"/>
+                android:layout_margin="10dp"
+                android:alpha="0.7"
+                android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+                android:padding="15dp"
+                android:paddingEnd="20dp"
+                android:paddingStart="20dp"
+                android:text="00:00"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse" />
 
-            <TextView
-                android:id="@+id/lblLoc"
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignEnd="@+id/lblLong"
-                android:layout_alignRight="@+id/lblLong"
-                android:layout_below="@+id/lblLong"
-                android:text="Location\t :"
-                android:layout_alignLeft="@+id/lblLong"
-                android:layout_alignStart="@+id/lblLong" />
-
-            <TextView
-                android:id="@+id/txtLang"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="start"
-                android:text="NULL"
-                android:layout_alignBaseline="@+id/lblLang"
-                android:layout_alignBottom="@+id/lblLang"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
-                android:layout_toEndOf="@+id/lblLong"
-                android:layout_marginRight="4dp"
-                android:layout_toRightOf="@+id/lblLong" />
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="15dp"
+                android:alpha="0.8"
+                app:cardBackgroundColor="@color/cardview_light_background"
+                app:cardCornerRadius="3dp"
+                app:cardElevation="5dp">
 
-            <TextView
-                android:id="@+id/txtLong"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/txtLang"
-                android:gravity="start"
-                android:text="NULL"
-                android:layout_toRightOf="@+id/lblLong"
-                android:layout_alignRight="@+id/txtLang"
-                android:layout_alignEnd="@+id/txtLang" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/txtLoc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/txtLong"
-                android:gravity="start"
-                android:text="NULL"
-                android:layout_toRightOf="@+id/lblLoc"
-                android:layout_alignRight="@+id/txtLong"
-                android:layout_alignEnd="@+id/txtLong" />
+                    <com.google.android.gms.maps.MapView
+                        android:id="@+id/mapView"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp" />
+
+                    <TextView
+                        android:id="@+id/location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:text="Nearby:\n\nTEST" />
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
 
         </RelativeLayout>
-    </android.support.v7.widget.CardView>
+    </FrameLayout>
 
-
-
-
-</RelativeLayout>
+</FrameLayout>
