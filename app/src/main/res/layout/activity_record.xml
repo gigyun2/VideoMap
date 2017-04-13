@@ -31,7 +31,10 @@
                 android:id="@+id/button_capture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
                 android:layout_gravity="bottom|center_horizontal"
+                android:layout_margin="10dp"
                 android:background="@android:color/transparent"
                 android:elevation="5dp"
                 android:foregroundGravity="bottom|center_horizontal"
@@ -39,10 +42,7 @@
                 android:minWidth="70dp"
                 android:onClick="onCaptureClick"
                 android:scaleType="fitXY"
-                app:srcCompat="@mipmap/camera_record"
-                android:layout_margin="10dp"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true" />
+                app:srcCompat="@mipmap/camera_record" />
 
             <TextView
                 android:id="@+id/time"
