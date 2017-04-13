@@ -102,7 +102,7 @@ public class RecordActivity extends FragmentActivity implements OnMapReadyCallba
         captureButton = (ImageButton) findViewById(R.id.button_capture);
         timer = (TextView) findViewById(R.id.time);// Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.location);
+                .findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
     }
 

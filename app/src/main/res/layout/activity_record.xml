@@ -44,6 +44,23 @@
                 android:scaleType="fitXY"
                 app:srcCompat="@mipmap/camera_record" />
 
+            <ImageButton
+                android:id="@+id/button_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/cardview"
+                android:layout_alignRight="@+id/cardview"
+                android:layout_alignTop="@+id/button_capture"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@mipmap/camera_switch"
+                android:elevation="5dp"
+                android:foregroundGravity="bottom|center_horizontal"
+                android:minHeight="70dp"
+                android:minWidth="70dp"
+                android:onClick="onCaptureClick"
+                android:scaleType="fitXY"
+                app:srcCompat="@mipmap/camera_switch" />
+
             <TextView
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
@@ -77,17 +94,19 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <com.google.android.gms.maps.MapView
+                    <fragment
+                        class="com.google.android.gms.maps.MapFragment"
                         android:id="@+id/mapView"
                         android:layout_width="100dp"
                         android:layout_height="100dp" />
-
+                    <!--
                     <TextView
                         android:id="@+id/location"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="10dp"
                         android:text="Nearby:\n\nTEST" />
+                        -->
                 </LinearLayout>
             </android.support.v7.widget.CardView>
 
