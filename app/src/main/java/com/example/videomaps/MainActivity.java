@@ -47,9 +47,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ImageButton.OnClickListener btnRecordListener=new ImageButton.OnClickListener(){
         public void onClick(View V){
-            Intent actRecord=new Intent();
-            actRecord.setClass(MainActivity.this,RecordActivity.class);
-            startActivity(actRecord);
+        Intent actRecord=new Intent();
+        actRecord.setClass(MainActivity.this,RecordActivity.class);
+        startActivity(actRecord);
         }
     };
 
