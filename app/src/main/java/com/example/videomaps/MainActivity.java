@@ -41,6 +41,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         ImageButton btnRecord=(ImageButton)findViewById(R.id.btnRecord);
         btnRecord.setOnClickListener(btnRecordListener);
+        //Test
+        ImageButton btnTestPlay=(ImageButton)findViewById(R.id.btnTestPlay) ;
+        btnTestPlay.setOnClickListener(btnTestPlayListener);
+        //Test
         mMap = googleMap;
         // Add a marker in Sydney and move the camera
     }
@@ -50,6 +54,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Intent actRecord=new Intent();
         actRecord.setClass(MainActivity.this,RecordActivity.class);
         startActivity(actRecord);
+        }
+    };
+
+    private ImageButton.OnClickListener btnTestPlayListener=new ImageButton.OnClickListener(){
+        public void onClick(View V){
+            Intent actPlay=new Intent();
+            actPlay.setClass(MainActivity.this,PlayActivity.class);
+            startActivity(actPlay);
         }
     };
 
