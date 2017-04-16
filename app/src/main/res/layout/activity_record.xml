@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".RecordActivity">
 
     <TextureView
@@ -35,10 +34,12 @@
                 android:layout_centerHorizontal="true"
                 android:layout_gravity="bottom|center_horizontal"
                 android:layout_margin="10dp"
-                android:background="@android:color/transparent"
+                android:background="@mipmap/camera_record"
                 android:elevation="5dp"
                 android:foregroundGravity="bottom|center_horizontal"
-                android:minHeight="70dp"
+                android:maxHeight="100dp"
+                android:maxWidth="100dp"
+                android:minHeight="71dp"
                 android:minWidth="70dp"
                 android:onClick="onCaptureClick"
                 android:scaleType="fitXY"
@@ -65,14 +66,14 @@
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:alpha="0.7"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:alpha="0.8"
                 android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
                 android:padding="15dp"
-                android:paddingEnd="20dp"
-                android:paddingStart="20dp"
                 android:text="00:00"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse" />
+                android:textAppearance="@style/TextAppearance.AppCompat" />
 
             <android.support.v7.widget.CardView
                 android:id="@+id/cardview"
@@ -97,8 +98,8 @@
                     <fragment
                         class="com.google.android.gms.maps.MapFragment"
                         android:id="@+id/mapView"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp" />
+                        android:layout_width="150dp"
+                        android:layout_height="150dp" />
                     <!--
                     <TextView
                         android:id="@+id/location"
