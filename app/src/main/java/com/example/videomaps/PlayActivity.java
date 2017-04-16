@@ -1,6 +1,8 @@
 package com.example.videomaps;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,6 +25,7 @@ import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
@@ -32,10 +35,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class PlayActivity extends AppCompatActivity {
+public class PlayActivity extends FragmentActivity implements
+        OnMapReadyCallback/*, GoogleMap.OnMapClickListener*/ {
 
     private GoogleMap mMap;
-    private MapView mMapView;
+    MapFragment mapFragment;
+    private double lat;
+    private double lng;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -78,10 +84,10 @@ public class PlayActivity extends AppCompatActivity {
         @Override
         public void run() {
             // Delayed display of UI elements
-            ActionBar actionBar = getSupportActionBar();
+            /* ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.show();
-            }
+            }*/
             mControlsView.setVisibility(View.VISIBLE);
         }
     };
@@ -115,33 +121,18 @@ public class PlayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_play);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
         simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
 
-        // 1. Create a default TrackSelector
         Handler mainHandler = new Handler();
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        TrackSelector trackSelector =
-                new DefaultTrackSelector(videoTrackSelectionFactory);
-
-        // 2. Create a default LoadControl
+        TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         LoadControl loadControl = new DefaultLoadControl();
-
-        // 3. Create the player
-        SimpleExoPlayer player =
-                ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
-
-
-        // Bind the player to the view.
+        SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
         simpleExoPlayerView.setPlayer(player);
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -156,23 +147,27 @@ public class PlayActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-        mMapView = (MapView) findViewById(R.id.mapView);
-        mMapView.onCreate(savedInstanceState);
-        mMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                setUpMap(googleMap);
-            }
-        });
+        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
+        mapFragment.getMapAsync(this);
+
+        // TODO: passing location to PlayActivity
+        Intent intent = getIntent();
+        lat = 40;
+        lng = 151;
+        //lat = intent.getExtras().getDouble("lat");
+        //lng = intent.getExtras().getDouble("lng");
     }
 
-    private void setUpMap(GoogleMap googleMap) {
-        mMap = googleMap;
+    @Override
+    public void onMapReady(GoogleMap map)
+    {
+        mMap = map;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-40, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        LatLng sydney = new LatLng(lat, lng);
+        mMap.addMarker(new MarkerOptions().position(sydney));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
     }
 
     @Override
@@ -206,10 +201,10 @@ public class PlayActivity extends AppCompatActivity {
 
     private void hide() {
         // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
+        /* ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
-        }
+        } */
         mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
