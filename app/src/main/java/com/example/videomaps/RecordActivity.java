@@ -20,7 +20,9 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.location.Location;
 import android.location.LocationManager;
@@ -69,7 +71,8 @@ import static android.content.Context.LOCATION_SERVICE;
  */
 public class RecordActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener {
+        LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener,
+        TextureView.SurfaceTextureListener {
 
     private static final String TAG = "Recorder";
 
@@ -92,6 +95,8 @@ public class RecordActivity extends FragmentActivity implements
     private static final int REQUEST_CODE_LOCATION = 2000;
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
+    private CamcorderProfile profile;
+    private boolean cameraPrepared = false;
 
     private TextView timer;
     private long startHTime = 0L;
@@ -99,7 +104,6 @@ public class RecordActivity extends FragmentActivity implements
     long timeInMilliseconds = 0L;
     long timeSwapBuff = 0L;
     long updatedTime = 0L;
-
 
     private Runnable updateTimerThread = new Runnable() {
 
@@ -124,11 +128,17 @@ public class RecordActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
 
+        // TODO: orientation changes with sensor
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         mPreview = (TextureView) findViewById(R.id.surface_view);
+        mPreview.setSurfaceTextureListener(this);
         captureButton = (ImageButton) findViewById(R.id.button_capture);
         timer = (TextView) findViewById(R.id.time);// Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        //new PreviewPrepareTask().doInBackground();
+        //preparePreview();
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
@@ -285,10 +295,23 @@ public class RecordActivity extends FragmentActivity implements
     }
 
     @Override
+    protected void onPause() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+            mGoogleApiClient.disconnect();
+
+        super.onPause();
+        releaseMediaRecorder();
+        releaseCamera();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (mGoogleApiClient != null)
             mGoogleApiClient.connect();
+
+        if (!cameraPrepared) preparePreview();
+        //new PreviewPrepareTask().doInBackground();
     }
 
     @Override
@@ -419,26 +442,20 @@ public class RecordActivity extends FragmentActivity implements
             // inform the user that recording has stopped
             isRecording = false;
             setCaptureButtonStatus();
-            releaseCamera();
+            //releaseCamera();
+            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         }
-        else new MediaPrepareTask().execute(null, null, null);
+        else {
+            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            new MediaPrepareTask().execute(null, null, null);
+        }
     }
 
     private void setCaptureButtonStatus() {
         if (isRecording)
-            captureButton.setImageDrawable(getResources().getDrawable(R.drawable.camera_stop));
+            captureButton.setImageDrawable(getResources().getDrawable(R.mipmap.camera_stop));
         else
             captureButton.setImageDrawable(getResources().getDrawable(R.mipmap.camera_record));
-    }
-
-    @Override
-    protected void onPause() {
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
-            mGoogleApiClient.disconnect();
-
-        super.onPause();
-        releaseMediaRecorder();
-        releaseCamera();
     }
 
     private void releaseMediaRecorder(){
@@ -455,13 +472,52 @@ public class RecordActivity extends FragmentActivity implements
     private void releaseCamera(){
         if (mCamera != null){
             // release the camera for other applications
+            mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
         }
     }
 
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
+        if (cameraPrepared) {
+            try {
+                mCamera.setPreviewTexture(mPreview.getSurfaceTexture());
+                mCamera.startPreview();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else
+            preparePreview();
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
+    }
+
+    class PreviewPrepareTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            preparePreview();
+            return cameraPrepared;
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private boolean prepareVideoRecorder(){
+    private void preparePreview(){
         mCamera = CameraHelper.getDefaultCameraInstance();
 
         // Query camera to find all the sizes and choose the optimal size given the
@@ -469,49 +525,31 @@ public class RecordActivity extends FragmentActivity implements
         Camera.Parameters parameters = mCamera.getParameters();
         List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
         List<Camera.Size> mSupportedVideoSizes = parameters.getSupportedVideoSizes();
-        Camera.Size optimalSize = CameraHelper.getOptimalVideoSize(mSupportedVideoSizes,
-                mSupportedPreviewSizes, mPreview.getWidth(), mPreview.getHeight());
+        Camera.Size optimalSize = mSupportedVideoSizes.get(0);
+        //Camera.Size optimalSize = CameraHelper.getOptimalVideoSize(mSupportedVideoSizes,
+        //        mSupportedPreviewSizes, mPreview.getWidth(), mPreview.getHeight());
 
         // Use the same size for recording profile.
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+        profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
         profile.videoFrameWidth = optimalSize.width;
         profile.videoFrameHeight = optimalSize.height;
 
         // likewise for the camera object itself.
-        parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
+        //parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
+        parameters.setPreviewSize(mSupportedPreviewSizes.get(0).width, mSupportedPreviewSizes.get(0).height);
         mCamera.setParameters(parameters);
         try {
             // Requires API level 11+, For backward compatibility use {@link setPreviewDisplay}
             // with {@link SurfaceView}
             mCamera.setPreviewTexture(mPreview.getSurfaceTexture());
+            mCamera.startPreview();
         } catch (IOException e) {
             Log.e(TAG, "Surface texture is unavailable or unsuitable" + e.getMessage());
-            return false;
+            return;
         }
 
-        mMediaRecorder = new MediaRecorder();
-        mCamera.unlock();
-        mMediaRecorder.setCamera(mCamera);
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mMediaRecorder.setProfile(profile);
-        mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO);
-        if (mOutputFile == null)
-            return false;
-        mMediaRecorder.setOutputFile(mOutputFile.getPath());
-
-        try {
-            mMediaRecorder.prepare();
-        } catch (IllegalStateException e) {
-            Log.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
-            releaseMediaRecorder();
-            return false;
-        } catch (IOException e) {
-            Log.d(TAG, "IOException preparing MediaRecorder: " + e.getMessage());
-            releaseMediaRecorder();
-            return false;
-        }
-        return true;
+        cameraPrepared = true;
+        return;
     }
 
     /**
@@ -523,12 +561,34 @@ public class RecordActivity extends FragmentActivity implements
         @Override
         protected Boolean doInBackground(Void... voids) {
             // initialize video camera
-            if (prepareVideoRecorder()) {
-                mMediaRecorder.start();
+            if (cameraPrepared) {
+                mMediaRecorder = new MediaRecorder();
+                mCamera.unlock();
+                mMediaRecorder.setCamera(mCamera);
+                mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+                mMediaRecorder.setProfile(profile);
+                mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO);
+                if (mOutputFile == null)
+                    return false;
+                mMediaRecorder.setOutputFile(mOutputFile.getPath());
 
-                isRecording = true;
+                try {
+                    mMediaRecorder.prepare();
+                } catch (IllegalStateException e) {
+                    Log.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
+                    releaseMediaRecorder();
+                    return false;
+                } catch (IOException e) {
+                    Log.d(TAG, "IOException preparing MediaRecorder: " + e.getMessage());
+                    releaseMediaRecorder();
+                    return false;
+                }
+
                 startHTime = SystemClock.uptimeMillis();
                 timerHandler.postDelayed(updateTimerThread, 0);
+                isRecording = true;
+                mMediaRecorder.start();
             } else {
                 releaseMediaRecorder();
                 return false;
