@@ -12,42 +12,51 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.videomaps.MainActivity"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        tools:context="com.example.videomaps.MainActivity" />
 
     <ImageButton
         android:id="@+id/btnRecord"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:scaleType="fitCenter"
-        android:src="@mipmap/camera_record"
-        android:background="@null"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="10dp"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/camera_record" />
 
     <ImageButton
         android:id="@+id/btnLocation"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@mipmap/camera_location"
-        android:background="@null"
         android:layout_alignBottom="@+id/btnRecord"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="10dp"/>
+        android:layout_marginRight="10dp"
+        android:background="@null"
+        android:src="@mipmap/camera_location" />
 
     <ImageButton
         android:id="@+id/btnTestPlay"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:src="@mipmap/camera_play"
-        android:background="@null"
-        android:layout_marginLeft="10dp"
         android:layout_alignBottom="@+id/btnRecord"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-         />
+        android:layout_marginLeft="10dp"
+        android:background="@null"
+        android:src="@mipmap/camera_play" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvVideoList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager">
+    </android.support.v7.widget.RecyclerView>
 
 </RelativeLayout>
