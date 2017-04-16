@@ -28,9 +28,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
     private static final String TAG = "Main";
-
-    private ImageButton btnRecord,btnTestPlay;
-    private  RecyclerView rvVideoList;
+    private Bundle bundle;
+    private ImageButton btnRecord, btnTestPlay, btnLocation;
+    private RecyclerView rvVideoList;
 
     private boolean doubleBackToExitPressedOnce = false;
 
@@ -45,17 +45,21 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private static final int REQUEST_CODE_LOCATION = 2000;
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        bundle=savedInstanceState;
         setContentView(R.layout.activity_main);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        btnRecord=(ImageButton)findViewById(R.id.btnRecord);
+        btnRecord = (ImageButton) findViewById(R.id.btnRecord);
         btnRecord.setOnClickListener(btnRecordListener);
-        btnTestPlay=(ImageButton)findViewById(R.id.btnTestPlay) ;
+        btnTestPlay = (ImageButton) findViewById(R.id.btnTestPlay);
         btnTestPlay.setOnClickListener(btnTestPlayListener);
-        rvVideoList=(RecyclerView) findViewById(R.id.rvVideoList);
+        btnLocation = (ImageButton) findViewById(R.id.btnLocation);
+        btnLocation.setOnClickListener(btnLocationListener);
+        rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -72,34 +76,43 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
      * installed Google Play services and returned to the app.
      */
     //Event Listener Setup
-    private ImageButton.OnClickListener btnRecordListener=new ImageButton.OnClickListener(){
-        public void onClick(View V){
-        Intent actRecord=new Intent();
-        actRecord.setClass(MainActivity.this,RecordActivity.class);
-        startActivity(actRecord);
+    private ImageButton.OnClickListener btnRecordListener = new ImageButton.OnClickListener() {
+        @Override
+        public void onClick(View V) {
+            Intent actRecord = new Intent();
+            actRecord.setClass(MainActivity.this, RecordActivity.class);
+            startActivity(actRecord);
         }
     };
 
-    private ImageButton.OnClickListener btnTestPlayListener=new ImageButton.OnClickListener(){
-        public void onClick(View V){
-            Intent actPlay=new Intent();
-            actPlay.setClass(MainActivity.this,PlayActivity.class);
+    private ImageButton.OnClickListener btnTestPlayListener = new ImageButton.OnClickListener() {
+        @Override
+        public void onClick(View V) {
+            Intent actPlay = new Intent();
+            actPlay.setClass(MainActivity.this, PlayActivity.class);
             startActivity(actPlay);
+        }
+    };
+
+    private ImageButton.OnClickListener btnLocationListener = new ImageButton.OnClickListener() {
+        @Override
+        public void onClick(View V){
+            onConnected(bundle);
         }
     };
 
     // dialog for GPS ON
     @Override
-    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
-        super.onActivityResult (requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case  REQUEST_CODE_GPS :
+            case REQUEST_CODE_GPS:
                 if (resultCode == RESULT_OK) {
-                    if ( locationManager == null)
+                    if (locationManager == null)
                         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-                    if ( locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                         setGPS = true;
                         mapFragment.getMapAsync(this);
                     }
@@ -122,20 +135,21 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         if (requestCode == REQUEST_CODE_LOCATION &&
                 grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
                 (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED))
-        {
+                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 
-            if (mGoogleApiClient == null)buildGoogleApiClient();
+            if (mGoogleApiClient == null)
+                buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            /*mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setCompassEnabled(true);
+            mMap.getUiSettings().setRotateGesturesEnabled(true);*/
         }
     }
 
     @Override
-    public void onMapReady(GoogleMap map)
-    {
+    public void onMapReady(GoogleMap map) {
         mMap = map;
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
@@ -143,12 +157,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                Log.d(TAG, "onMapLoaded" );
+                Log.d(TAG, "onMapLoaded");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     checkLocationPermission();
-                }
-                else
-                {
+                } else {
                     if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS) {
                         Log.d(TAG, "onMapLoaded");
                         showGPSDisabledAlertToUser();
@@ -168,8 +180,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 buildGoogleApiClient();
             else
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-        }
-        else
+        } else
             buildGoogleApiClient();
 
         mMap.setOnMapClickListener(this);
@@ -183,7 +194,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     // after succeeded GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d( TAG, "onConnected" );
+        Log.d(TAG, "onConnected");
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             setGPS = true;
 
@@ -195,20 +206,21 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            Log.d( TAG, "onConnected " + "getLocationAvailability mGoogleApiClient.isConnected()="+mGoogleApiClient.isConnected() );
-            if ( !mGoogleApiClient.isConnected()  ) mGoogleApiClient.connect();
+            Log.d(TAG, "onConnected " + "getLocationAvailability mGoogleApiClient.isConnected()=" + mGoogleApiClient.isConnected());
+            if (!mGoogleApiClient.isConnected()) mGoogleApiClient.connect();
 
-            if (setGPS && mGoogleApiClient.isConnected())
-            {
-                Log.d( TAG, "onConnected " + "requestLocationUpdates" );
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            if (setGPS && mGoogleApiClient.isConnected()) {
+                Log.d(TAG, "onConnected " + "requestLocationUpdates");
 
                 Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                if ( location == null ) return;
+                if (location == null)
+                    return;
                 // Move map to the current location
+                mMap.clear();
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
         }
     }
@@ -263,6 +275,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         this.doubleBackToExitPressedOnce = true;
         Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
     }
+
     @Override
     public void onLocationChanged(Location location) {
         lat = location.getLatitude();
@@ -279,24 +292,19 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     }
 
     // dialog for GPS enable
-    private void showGPSDisabledAlertToUser()
-    {
+    private void showGPSDisabledAlertToUser() {
         android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.AlertDialog.Builder(this);
         alertDialogBuilder.setMessage("GPS is currently off. Would you like to turn it on?")
                 .setCancelable(false)
-                .setPositiveButton("ON", new DialogInterface.OnClickListener()
-                {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
+                .setPositiveButton("ON", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
                         Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                         startActivityForResult(callGPSSettingIntent, REQUEST_CODE_GPS);
                     }
                 });
 
-        alertDialogBuilder.setNegativeButton("BACK", new DialogInterface.OnClickListener()
-        {
-            public void onClick(DialogInterface dialog, int id)
-            {
+        alertDialogBuilder.setNegativeButton("BACK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
                 dialog.cancel();
             }
         });
@@ -304,9 +312,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         alert.show();
     }
 
-    public boolean checkLocationPermission()
-    {
-        Log.d( TAG, "checkLocationPermission");
+    public boolean checkLocationPermission() {
+        Log.d(TAG, "checkLocationPermission");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -319,9 +326,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                         Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE_LOCATION);
 
                 return false;
-            }
-            else
-            {
+            } else {
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                     showGPSDisabledAlertToUser();
 
@@ -330,9 +335,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
                 else mGoogleApiClient.reconnect();
             }
-        }
-        else
-        {
+        } else {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 
@@ -342,9 +345,12 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         return true;
     }
 
+    public void getCurrentLocation(){
+    }
+
     @Override
-    protected void onDestroy(){
-        Log.d( TAG, "OnDestroy");
+    protected void onDestroy() {
+        Log.d(TAG, "OnDestroy");
         if (mGoogleApiClient != null) {
             mGoogleApiClient.unregisterConnectionCallbacks(this);
             mGoogleApiClient.unregisterConnectionFailedListener(this);
