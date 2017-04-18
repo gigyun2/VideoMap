@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.location.*;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -49,8 +51,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
     private static final int zoomToRate = 15;
-    //Permission variable(Android 6.0 or above)
-
+    //Permission variable(Android 6.0 or above
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,7 +183,35 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public void onMapReady(GoogleMap map) {
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor=DatabaseHelper.queryPlaceAll(db);
+        ArrayList<Integer> listPid=new ArrayList<Integer>();
+        ArrayList<String> listName=new ArrayList<String>();
+        ArrayList<String> listDesc=new ArrayList<String>();
+        ArrayList<Double> listLat=new ArrayList<Double>();
+        ArrayList<Double> listLng=new ArrayList<Double>();
+        int totalPlace=0;
         mMap = map;
+
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    int pid=cursor.getInt(cursor.getColumnIndex("id"));
+                    listPid.add(pid);
+                    String name=cursor.getString(cursor.getColumnIndex("name"));
+                    listName.add(name);
+                    String desc=cursor.getString(cursor.getColumnIndex("description"));
+                    listDesc.add(desc);
+                    double lat= cursor.getDouble(cursor.getColumnIndex("latitude"));
+                    listLat.add(lat);
+                    double lng= cursor.getDouble(cursor.getColumnIndex("longitude"));
+                    listLat.add(lng);
+                    totalPlace++;
+                }while(cursor.moveToNext());
+            }
+        }
+        LatLng place[]=new LatLng[totalPlace];
 
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -372,9 +401,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return true;
     }
 
-    public void getCurrentLocation() {
-    }
-
     @Override
     protected void onDestroy() {
         Log.d(TAG, "OnDestroy");
@@ -400,6 +426,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public boolean onMarkerClick(Marker marker){
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
         lvVideoList=(ListView)findViewById(R.id.lvVideoList);
         final ArrayList<String> pathList=new ArrayList<String>();
         ArrayList<String> fileNameList=new ArrayList<String>();
@@ -409,7 +437,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         ArrayList<String> longList=new ArrayList<String>();
         ArrayList<String> descList=new ArrayList<String>();
         ArrayAdapter<String> adapter;
-        Cursor cursor;
+        Cursor cursor=DatabaseHelper.queryMedia(db,);
 
         if(cursor!=null){
             if(cursor.moveToFirst()){
