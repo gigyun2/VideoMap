@@ -25,13 +25,16 @@ import com.google.android.gms.maps.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.database.Cursor;
+
 public class MainActivity extends MapActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "Main";
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
-    private RecyclerView rvVideoList;
+    //private RecyclerView rvVideoList;
+    private ListView lvVideoList;
     private boolean doubleBackToExitPressedOnce = false;
 
     private GoogleMap mMap;
@@ -67,7 +70,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         btnTestPlay.setOnClickListener(btnTestPlayListener);
         btnLocation = (ImageButton) findViewById(R.id.btnLocation);
         btnLocation.setOnClickListener(btnLocationListener);
-        rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
+        //rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -396,9 +399,39 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     @Override
-    public boolean onMarkerClick(Marker marker) {
-        // TODO: load list of video
+    public boolean onMarkerClick(Marker marker){
+        lvVideoList=(ListView)findViewById(R.id.lvVideoList);
+        final ArrayList<String> pathList=new ArrayList<String>();
+        ArrayList<String> fileNameList=new ArrayList<String>();
+        ArrayList<String> pidList=new ArrayList<String>();
+        ArrayList<String> placeNameList=new ArrayList<String>();
+        ArrayList<String> latList=new ArrayList<String>();
+        ArrayList<String> longList=new ArrayList<String>();
+        ArrayList<String> descList=new ArrayList<String>();
+        ArrayAdapter<String> adapter;
+        Cursor cursor;
 
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    String path= cursor.getString(cursor.getColumnIndex("path"));
+                    pathList.add(path);
+                    String filename=path.substring(path.lastIndexOf("/")+1);
+                    fileNameList.add(filename);
+                }while(cursor.moveToNext());
+            }
+        }
+        adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,fileNameList);
+        lvVideoList.setAdapter(adapter);
+        lvVideoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent=new Intent(MainActivity.this,PlayActivity.class);
+                String path = (String)pathList.get(i);
+                intent.putExtra("path",path);
+                startActivity(intent);
+            }
+        });
         return false;
     }
 }
