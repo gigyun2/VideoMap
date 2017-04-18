@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.location.*;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -25,13 +27,16 @@ import com.google.android.gms.maps.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.database.Cursor;
+
 public class MainActivity extends MapActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "Main";
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
-    private RecyclerView rvVideoList;
+    //private RecyclerView rvVideoList;
+    private ListView lvVideoList;
     private boolean doubleBackToExitPressedOnce = false;
 
     private GoogleMap mMap;
@@ -46,8 +51,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
     private static final int zoomToRate = 15;
-    //Permission variable(Android 6.0 or above)
-
+    //Permission variable(Android 6.0 or above
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +71,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         btnTestPlay.setOnClickListener(btnTestPlayListener);
         btnLocation = (ImageButton) findViewById(R.id.btnLocation);
         btnLocation.setOnClickListener(btnLocationListener);
-        rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
+        //rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -179,7 +183,35 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public void onMapReady(GoogleMap map) {
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor=DatabaseHelper.queryPlaceAll(db);
+        ArrayList<Integer> listPid=new ArrayList<Integer>();
+        ArrayList<String> listName=new ArrayList<String>();
+        ArrayList<String> listDesc=new ArrayList<String>();
+        ArrayList<Double> listLat=new ArrayList<Double>();
+        ArrayList<Double> listLng=new ArrayList<Double>();
+        int totalPlace=0;
         mMap = map;
+
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    int pid=cursor.getInt(cursor.getColumnIndex("id"));
+                    listPid.add(pid);
+                    String name=cursor.getString(cursor.getColumnIndex("name"));
+                    listName.add(name);
+                    String desc=cursor.getString(cursor.getColumnIndex("description"));
+                    listDesc.add(desc);
+                    double lat= cursor.getDouble(cursor.getColumnIndex("latitude"));
+                    listLat.add(lat);
+                    double lng= cursor.getDouble(cursor.getColumnIndex("longitude"));
+                    listLat.add(lng);
+                    totalPlace++;
+                }while(cursor.moveToNext());
+            }
+        }
+        LatLng place[]=new LatLng[totalPlace];
 
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -369,9 +401,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return true;
     }
 
-    public void getCurrentLocation() {
-    }
-
     @Override
     protected void onDestroy() {
         Log.d(TAG, "OnDestroy");
@@ -396,9 +425,41 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     @Override
-    public boolean onMarkerClick(Marker marker) {
-        // TODO: load list of video
+    public boolean onMarkerClick(Marker marker){
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        lvVideoList=(ListView)findViewById(R.id.lvVideoList);
+        final ArrayList<String> pathList=new ArrayList<String>();
+        ArrayList<String> fileNameList=new ArrayList<String>();
+        ArrayList<String> pidList=new ArrayList<String>();
+        ArrayList<String> placeNameList=new ArrayList<String>();
+        ArrayList<String> latList=new ArrayList<String>();
+        ArrayList<String> longList=new ArrayList<String>();
+        ArrayList<String> descList=new ArrayList<String>();
+        ArrayAdapter<String> adapter;
+        Cursor cursor=DatabaseHelper.queryMedia(db,);
 
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    String path= cursor.getString(cursor.getColumnIndex("path"));
+                    pathList.add(path);
+                    String filename=path.substring(path.lastIndexOf("/")+1);
+                    fileNameList.add(filename);
+                }while(cursor.moveToNext());
+            }
+        }
+        adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,fileNameList);
+        lvVideoList.setAdapter(adapter);
+        lvVideoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent=new Intent(MainActivity.this,PlayActivity.class);
+                String path = (String)pathList.get(i);
+                intent.putExtra("path",path);
+                startActivity(intent);
+            }
+        });
         return false;
     }
 }

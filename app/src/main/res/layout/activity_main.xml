@@ -53,14 +53,12 @@
         android:src="@mipmap/camera_play"
         />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rvVideoList"
+    <ListView
+        android:id="@+id/lvVideoList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="10dp"
+        android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:visibility="visible"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_alignTop="@+id/btnRecord" />
 
 </RelativeLayout>
