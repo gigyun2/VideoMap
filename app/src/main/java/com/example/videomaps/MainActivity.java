@@ -1,12 +1,7 @@
 package com.example.videomaps;
 
-import android.app.AlertDialog;
 import android.content.*;
-import android.location.*;
-import android.os.Handler;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -14,7 +9,9 @@ import android.widget.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends MapActivity implements OnMapReadyCallback,
+        GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
+
     private GoogleMap mMap;
     private boolean doubleBackToExitPressedOnce = false;
     @Override
@@ -31,8 +28,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
+     * This is where we can add markers or lines, add listeners or move the camera.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -83,4 +79,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, "Still working", Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onMapClick(LatLng point) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(point));
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        // TODO: load list of video
+
+        return false;
+    }
 }

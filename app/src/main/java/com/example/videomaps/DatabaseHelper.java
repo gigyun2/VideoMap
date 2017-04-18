@@ -1,9 +1,14 @@
 package com.example.videomaps;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 /**
  * Created by YGG on 4/18/2017.
@@ -26,35 +31,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public static final String _CREATE =
                 "CREATE TABLE IF NOT EXISTS " + Place.TABLE_NAME + " (" +
                         Place._ID + INT_TYPE + " PRIMARY KEY AUTOINCREMENT," +
-                        Place.NAME + TEXT_TYPE + COMMA_SEP +
+                        Place.NAME + VARCHAR_TYPE + COMMA_SEP +
                         Place.LATITUDE + FLOAT_TYPE + COMMA_SEP +//+ " (8,6)" + COMMA_SEP +
                         Place.LONGITUDE + FLOAT_TYPE + COMMA_SEP +//+ " (9,6)" + COMMA_SEP +
                         Place.DESCRIPTION + TEXT_TYPE + " )";
     }
 
     public static final class Media implements BaseColumns {
+        public static final String PATH = "path";
         public static final String DATE = "date";
         public static final String PLACE_ID = "place_id";
         public static final String TABLE_NAME = "media";
         public static final String _CREATE =
                 "CREATE TABLE IF NOT EXISTS " + Media.TABLE_NAME + " (" +
                         Media._ID + INT_TYPE + COMMA_SEP +
-                        Media.DATE + TEXT_TYPE + COMMA_SEP +
+                        Media.PATH + TEXT_TYPE + COMMA_SEP +
+                        Media.DATE + DATE_TYPE + COMMA_SEP + " DEFAULT CURRENT_TIMESTAMP" +
                         Media.PLACE_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
                         " PRIMARY KEY (" + _ID + COMMA_SEP + PLACE_ID + " )" + " )";
-    }
-
-    public static final class Place_Media implements BaseColumns {
-        public static final String TAG_NAME = "tag_name";
-        public static final String REVIEW_ID = "review_id";
-        public static final String PLACE_ID = "place_id";
-        public static final String TABLE_NAME = "place_media";
-        public static final String _CREATE =
-                "CREATE TABLE IF NOT EXISTS " + Place_Media.TABLE_NAME + " (" +
-                        Place_Media.TAG_NAME + INT_TYPE + " NOT NULL" + COMMA_SEP +
-                        Place_Media.REVIEW_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
-                        Place_Media.PLACE_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
-                        " PRIMARY KEY (" + TAG_NAME + COMMA_SEP + REVIEW_ID + COMMA_SEP + PLACE_ID + " )" + " )";
     }
 
     // If you change the database schema, you must increment the database version.
@@ -68,7 +62,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     Media._CREATE  + "; " + Place_Media._CREATE;
     */
     private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + Place.TABLE_NAME  + " " + Media.TABLE_NAME + " " + Place_Media.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + Place.TABLE_NAME  + " " + Media.TABLE_NAME;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -77,7 +71,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(Place._CREATE);
         db.execSQL(Media._CREATE);
-        db.execSQL(Place_Media._CREATE);
         // db.insert();
     }
 
@@ -96,4 +89,60 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // onUpgrade(db, oldVersion, newVersion);
     }
 
+    public boolean addMedia(String path, int place_id) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues placeValue = new ContentValues();
+        placeValue.put(Media.PLACE_ID, Integer.toString(place_id));
+        placeValue.put(Media.DATE, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        placeValue.put(Media.PATH, path);
+        if (db.insert(DatabaseHelper.Place.TABLE_NAME, null, placeValue) == -1)
+            return false;
+        return true;
+    }
+
+    public Cursor queryMedia(int place_id) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        String[] projection = {
+                Media.DATE,
+                Media.PATH
+        };
+        String selection = Media.PLACE_ID + " = ?";
+        String[] selectionArgs = {Integer.toString(place_id)};
+        String orderBy =  Media.DATE + " DESC";
+        return db.query(Media.TABLE_NAME, projection, selection, selectionArgs, null, null, orderBy);
+    }
+
+    public boolean addPlace(String name, double latitude, double longitude, String desc) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues placeValue = new ContentValues();
+        placeValue.put(Place.NAME, name);
+        placeValue.put(Place.LATITUDE, Double.toString(latitude));
+        placeValue.put(Place.LONGITUDE, Double.toString(longitude);
+        placeValue.put(Place.DESCRIPTION, desc);
+        if (db.insert(DatabaseHelper.Place.TABLE_NAME, null, placeValue) == -1)
+            return false;
+        return true;
+    }
+
+    public Cursor queryPlaceAll() {
+        SQLiteDatabase db = getReadableDatabase();
+
+        return db.query(Place.TABLE_NAME, null, null, null, null, null, null);
+    }
+    /*
+    public Cursor queryPlace(double latitude, double longitude) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        String[] projection = {
+                Place.,
+                Place.PATH
+        };
+        String selection = Media.PLACE_ID + " = ?";
+        String[] selectionArgs = {Integer.toString(place_id)};
+        String orderBy =  Media.DATE + " DESC";
+        Cursor c = db.query(Place.TABLE_NAME, projection, selection, selectionArgs, null, null, orderBy);
+    }*/
 }
