@@ -1,13 +1,11 @@
 package com.example.videomaps;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.*;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.*;
 import android.os.Build;
-import android.os.Handler;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.content.*;
@@ -23,6 +21,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends MapActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
@@ -44,12 +45,20 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final int REQUEST_CODE_LOCATION = 2000;
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
+    private static final int zoomToRate = 15;
+    //Permission variable(Android 6.0 or above)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        bundle=savedInstanceState;
+        List<String> permissionList= getGrantedPermissions(this);
+        String[] permissions=permissionList.toArray(new String[permissionList.size()]);
+        final int permissionsAll = 1;
+        if (!hasPermissions(this, permissions)) {
+            ActivityCompat.requestPermissions(this, permissions, permissionsAll);
+        }
         setContentView(R.layout.activity_main);
+        bundle = savedInstanceState;
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         btnRecord = (ImageButton) findViewById(R.id.btnRecord);
@@ -64,6 +73,29 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         mapFragment.getMapAsync(this);
     }
 
+    // /Grant All Permissions (Android 6.0 or above)
+    List<String> getGrantedPermissions(Context context) {
+        List<String> granted = new ArrayList<String>();
+        try {
+            PackageInfo pi = getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                for (int i = 0; i < pi.requestedPermissions.length; i++) {
+                    if ((pi.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0)
+                        granted.add(pi.requestedPermissions[i]);
+                }
+            }
+        } catch (Exception e) {}
+        return granted;
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null)
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                    return false;
+            }
+        return true;
+    }
 
     /**
      * Manipulates the map once available.
@@ -94,7 +126,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     private ImageButton.OnClickListener btnLocationListener = new ImageButton.OnClickListener() {
         @Override
-        public void onClick(View V){
+        public void onClick(View V) {
             onConnected(bundle);
         }
     };
@@ -140,17 +172,14 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             if (mGoogleApiClient == null)
                 buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
-            /*mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
             mMap.getUiSettings().setCompassEnabled(true);
-            mMap.getUiSettings().setRotateGesturesEnabled(true);*/
         }
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
 
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -164,9 +193,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         showGPSDisabledAlertToUser();
                     }
 
-                    if (mGoogleApiClient == null) buildGoogleApiClient();
+                    if (mGoogleApiClient == null)
+                        buildGoogleApiClient();
                     mMap.setMyLocationEnabled(true);
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                    mMap.getUiSettings().setCompassEnabled(true);
                 }
             }
         });
@@ -177,7 +208,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                     || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 buildGoogleApiClient();
             else
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
         } else
             buildGoogleApiClient();
 
@@ -217,7 +248,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 mMap.clear();
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
         }
@@ -338,7 +369,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return true;
     }
 
-    public void getCurrentLocation(){
+    public void getCurrentLocation() {
     }
 
     @Override
