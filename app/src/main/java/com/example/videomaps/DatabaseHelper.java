@@ -103,6 +103,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
     static public Cursor queryMedia(SQLiteDatabase db, int place_id) {
 
         String[] projection = {
+                Media._ID,
                 Media.DATE,
                 Media.PATH
         };
@@ -128,18 +129,17 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
         return db.query(Place.TABLE_NAME, null, null, null, null, null, null);
     }
-    /*
+
     public Cursor queryPlace(double latitude, double longitude) {
         SQLiteDatabase db = getReadableDatabase();
 
         String[] projection = {
-                Place.,
-                Place.PATH
+                Place._ID,
+                Place.NAME,
+                Place.DESCRIPTION
         };
-        String selection = Media.PLACE_ID + " = ?";
-        String[] selectionArgs = {Integer.toString(place_id)};
-        String orderBy =  Media.DATE + " DESC";
-        Cursor c = db.query(Place.TABLE_NAME, projection, selection, selectionArgs, null, null, orderBy);
+        String selection = Place.LATITUDE + " = ?" + Place.LONGITUDE + " = ?";
+        String[] selectionArgs = {Double.toString(latitude), Double.toString(longitude)};
+        return db.query(Place.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
     }
-    */
 }

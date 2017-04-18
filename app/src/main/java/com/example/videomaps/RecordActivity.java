@@ -18,6 +18,7 @@ package com.example.videomaps;
 
 import android.annotation.TargetApi;
 import android.content.pm.ActivityInfo;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.location.LocationManager;
@@ -143,7 +144,9 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             releaseMediaRecorder(); // release the MediaRecorder object
             mCamera.lock();         // take camera access back from MediaRecorder
 
-
+            DatabaseHelper dh = new DatabaseHelper(this);
+            SQLiteDatabase db = dh.getWritableDatabase();
+            dh.addMedia(db, mOutputFile, id);
 
             // inform the user that recording has stopped
             isRecording = false;

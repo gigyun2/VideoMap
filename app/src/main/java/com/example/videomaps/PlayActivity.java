@@ -40,8 +40,8 @@ public class PlayActivity extends FragmentActivity implements
 
     private GoogleMap mMap;
     MapFragment mapFragment;
-    private double lat;
-    private double lng;
+    private double lat = 40;
+    private double lng = 151;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -116,6 +116,8 @@ public class PlayActivity extends FragmentActivity implements
 
     private SimpleExoPlayerView simpleExoPlayerView;
 
+    private String path;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,6 +128,11 @@ public class PlayActivity extends FragmentActivity implements
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
         simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
+
+        Intent intent = getIntent();
+        path = intent.getExtras().getString("path");
+        lat = intent.getExtras().getDouble("latitude");
+        lng = intent.getExtras().getDouble("longitude");
 
         Handler mainHandler = new Handler();
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -149,13 +156,6 @@ public class PlayActivity extends FragmentActivity implements
         // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
-
-        // TODO: passing location to PlayActivity
-        Intent intent = getIntent();
-        lat = 40;
-        lng = 151;
-        //lat = intent.getExtras().getDouble("lat");
-        //lng = intent.getExtras().getDouble("lng");
     }
 
     @Override
@@ -164,9 +164,9 @@ public class PlayActivity extends FragmentActivity implements
         mMap = map;
         mMap.getUiSettings().setMapToolbarEnabled(false);
 
-        LatLng sydney = new LatLng(lat, lng);
-        mMap.addMarker(new MarkerOptions().position(sydney));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng mark = new LatLng(lat, lng);
+        mMap.addMarker(new MarkerOptions().position(mark));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(mark));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
     }
 
