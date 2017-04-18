@@ -113,16 +113,14 @@ class DatabaseHelper extends SQLiteOpenHelper {
         return db.query(Media.TABLE_NAME, projection, selection, selectionArgs, null, null, orderBy);
     }
 
-    static public boolean addPlace(SQLiteDatabase db, String name, double latitude, double longitude, String desc) {
+    static public long addPlace(SQLiteDatabase db, String name, double latitude, double longitude, String desc) {
 
         ContentValues placeValue = new ContentValues();
         placeValue.put(Place.NAME, name);
         placeValue.put(Place.LATITUDE, Double.toString(latitude));
         placeValue.put(Place.LONGITUDE, Double.toString(longitude));
         placeValue.put(Place.DESCRIPTION, desc);
-        if (db.insert(DatabaseHelper.Place.TABLE_NAME, null, placeValue) == -1)
-            return false;
-        return true;
+        return db.insert(DatabaseHelper.Place.TABLE_NAME, null, placeValue);
     }
 
     static public Cursor queryPlaceAll(SQLiteDatabase db) {

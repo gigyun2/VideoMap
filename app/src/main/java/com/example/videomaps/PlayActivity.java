@@ -2,6 +2,7 @@ package com.example.videomaps;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,13 +17,21 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.extractor.ExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
+import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -30,6 +39,8 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.File;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -130,9 +141,12 @@ public class PlayActivity extends FragmentActivity implements
         simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
 
         Intent intent = getIntent();
-        path = intent.getExtras().getString("path");
-        lat = intent.getExtras().getDouble("latitude");
-        lng = intent.getExtras().getDouble("longitude");
+        path = intent.getExtras().getString("path", null);
+        lat = intent.getExtras().getDouble("latitude", -33);
+        lng = intent.getExtras().getDouble("longitude", 151);
+        File f = null;
+        if (path != null)
+            f = new File (path);
 
         Handler mainHandler = new Handler();
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -156,6 +170,17 @@ public class PlayActivity extends FragmentActivity implements
         // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
+
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
+                Util.getUserAgent(this, "@string/title_activity_main"),
+                (TransferListener<? super DataSource>) bandwidthMeter);
+        // Produces Extractor instances for parsing the media data.
+        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+        // This is the MediaSource representing the media to be played.
+        MediaSource videoSource = new ExtractorMediaSource(Uri.fromFile(f),
+                dataSourceFactory, extractorsFactory, null, null);
+        // Prepare the player with the source.
+        player.prepare(videoSource);
     }
 
     @Override

@@ -17,7 +17,9 @@
 package com.example.videomaps;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -54,12 +56,14 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
     private TextureView mPreview;
     private MediaRecorder mMediaRecorder;
     private File mOutputFile;
-
+    private CamcorderProfile profile;
     private boolean isRecording = false;
+    private boolean cameraPrepared = false;
     private ImageButton captureButton;
 
-    private CamcorderProfile profile;
-    private boolean cameraPrepared = false;
+    private int pid;
+    private double lat;
+    private double lng;
 
     private TextView timer;
     private long startHTime = 0L;
@@ -93,6 +97,11 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
         // TODO: orientation changes with sensor
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+        Intent intent = getIntent();
+        pid = intent.getExtras().getInt("place_id", -1);
+        lat = intent.getExtras().getDouble("latitude", -33);
+        lng = intent.getExtras().getDouble("longitude", 151);
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
@@ -146,7 +155,15 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
             DatabaseHelper dh = new DatabaseHelper(this);
             SQLiteDatabase db = dh.getWritableDatabase();
-            dh.addMedia(db, mOutputFile, id);
+            if (pid != -1) dh.addMedia(db, mOutputFile.getName(), pid);
+            else {
+                Cursor c = dh.queryPlace(lat, lng);
+                if (c.moveToFirst()) dh.addMedia(db, mOutputFile.getPath(), c.getInt(0));
+                else {
+                    pid = (int) dh.addPlace(db, null, lat, lng, null);
+                    dh.addMedia(db, mOutputFile.getPath(), pid);
+                }
+            }
 
             // inform the user that recording has stopped
             isRecording = false;
