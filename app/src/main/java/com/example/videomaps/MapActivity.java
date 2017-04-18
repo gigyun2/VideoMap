@@ -1,37 +1,42 @@
 package com.example.videomaps;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.*;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.*;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
-import android.os.Handler;
-import android.provider.Settings;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.content.*;
 import android.support.v4.app.ActivityCompat;
-import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.View;
-import android.widget.*;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.*;
-import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.*;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends MapActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
+import static android.content.Context.LOCATION_SERVICE;
 
-    private static final String TAG = "Main";
-    private Bundle bundle;
-    private ImageButton btnRecord, btnTestPlay, btnLocation;
-    private RecyclerView rvVideoList;
-    private boolean doubleBackToExitPressedOnce = false;
+/**
+ * Created by YGG on 4/18/2017.
+ */
+
+public class MapActivity extends FragmentActivity implements
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener {
+    private static final String TAG = "Map";
 
     private GoogleMap mMap;
     LocationManager locationManager;
@@ -45,72 +50,18 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        bundle=savedInstanceState;
-        setContentView(R.layout.activity_main);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        btnRecord = (ImageButton) findViewById(R.id.btnRecord);
-        btnRecord.setOnClickListener(btnRecordListener);
-        btnTestPlay = (ImageButton) findViewById(R.id.btnTestPlay);
-        btnTestPlay.setOnClickListener(btnTestPlayListener);
-        btnLocation = (ImageButton) findViewById(R.id.btnLocation);
-        btnLocation.setOnClickListener(btnLocationListener);
-        rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    //Event Listener Setup
-    private ImageButton.OnClickListener btnRecordListener = new ImageButton.OnClickListener() {
-        @Override
-        public void onClick(View V) {
-            Intent actRecord = new Intent();
-            actRecord.setClass(MainActivity.this, RecordActivity.class);
-            startActivity(actRecord);
-        }
-    };
-
-    private ImageButton.OnClickListener btnTestPlayListener = new ImageButton.OnClickListener() {
-        @Override
-        public void onClick(View V) {
-            Intent actPlay = new Intent();
-            actPlay.setClass(MainActivity.this, PlayActivity.class);
-            startActivity(actPlay);
-        }
-    };
-
-    private ImageButton.OnClickListener btnLocationListener = new ImageButton.OnClickListener() {
-        @Override
-        public void onClick(View V){
-            onConnected(bundle);
-        }
-    };
-
     // dialog for GPS ON
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
+        super.onActivityResult (requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQUEST_CODE_GPS:
+            case  REQUEST_CODE_GPS :
                 if (resultCode == RESULT_OK) {
-                    if (locationManager == null)
+                    if ( locationManager == null)
                         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    if ( locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                         setGPS = true;
                         mapFragment.getMapAsync(this);
                     }
@@ -133,21 +84,20 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         if (requestCode == REQUEST_CODE_LOCATION &&
                 grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
                 (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED))
+        {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 
-            if (mGoogleApiClient == null)
-                buildGoogleApiClient();
+            if (mGoogleApiClient == null)buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
-            /*mMap.getUiSettings().setMyLocationButtonEnabled(false);
-            mMap.getUiSettings().setCompassEnabled(true);
-            mMap.getUiSettings().setRotateGesturesEnabled(true);*/
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
 
     @Override
-    public void onMapReady(GoogleMap map) {
+    public void onMapReady(GoogleMap map)
+    {
         mMap = map;
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
@@ -155,10 +105,12 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                Log.d(TAG, "onMapLoaded");
+                Log.d( TAG, "onMapLoaded" );
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     checkLocationPermission();
-                } else {
+                }
+                else
+                {
                     if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS) {
                         Log.d(TAG, "onMapLoaded");
                         showGPSDisabledAlertToUser();
@@ -178,7 +130,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 buildGoogleApiClient();
             else
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-        } else
+        }
+        else
             buildGoogleApiClient();
 
         mMap.setOnMapClickListener(this);
@@ -192,7 +145,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // after succeeded GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG, "onConnected");
+        Log.d( TAG, "onConnected" );
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             setGPS = true;
 
@@ -204,21 +157,20 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            Log.d(TAG, "onConnected " + "getLocationAvailability mGoogleApiClient.isConnected()=" + mGoogleApiClient.isConnected());
-            if (!mGoogleApiClient.isConnected()) mGoogleApiClient.connect();
+            Log.d( TAG, "onConnected " + "getLocationAvailability mGoogleApiClient.isConnected()="+mGoogleApiClient.isConnected() );
+            if ( !mGoogleApiClient.isConnected()  ) mGoogleApiClient.connect();
 
-            if (setGPS && mGoogleApiClient.isConnected()) {
-                Log.d(TAG, "onConnected " + "requestLocationUpdates");
+            if (setGPS && mGoogleApiClient.isConnected())
+            {
+                Log.d( TAG, "onConnected " + "requestLocationUpdates" );
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
                 Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                if (location == null)
-                    return;
+                if ( location == null ) return;
                 // Move map to the current location
-                mMap.clear();
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
         }
     }
@@ -236,10 +188,23 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     @Override
+    public void onMapClick(LatLng point) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(point));
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         if (mGoogleApiClient != null)
             mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+            mGoogleApiClient.disconnect();
+
+        super.onPause();
     }
 
     @Override
@@ -258,15 +223,19 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     @Override
-    public void onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            super.onBackPressed();
-            ActivityCompat.finishAffinity(this);
-            return;
-        }
+    protected void onDestroy() {
+        Log.d( TAG, "OnDestroy");
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.unregisterConnectionCallbacks(this);
+            mGoogleApiClient.unregisterConnectionFailedListener(this);
 
-        this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            if (mGoogleApiClient.isConnected())
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+
+            mGoogleApiClient.disconnect();
+            mGoogleApiClient = null;
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -285,28 +254,34 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     // dialog for GPS enable
-    private void showGPSDisabledAlertToUser() {
-        android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.AlertDialog.Builder(this);
+    private void showGPSDisabledAlertToUser()
+    {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setMessage("GPS is currently off. Would you like to turn it on?")
                 .setCancelable(false)
-                .setPositiveButton("ON", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                .setPositiveButton("ON", new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialog, int id)
+                    {
                         Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                         startActivityForResult(callGPSSettingIntent, REQUEST_CODE_GPS);
                     }
                 });
 
-        alertDialogBuilder.setNegativeButton("BACK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
+        alertDialogBuilder.setNegativeButton("BACK", new DialogInterface.OnClickListener()
+        {
+            public void onClick(DialogInterface dialog, int id)
+            {
                 dialog.cancel();
             }
         });
-        android.support.v7.app.AlertDialog alert = alertDialogBuilder.create();
+        AlertDialog alert = alertDialogBuilder.create();
         alert.show();
     }
 
-    public boolean checkLocationPermission() {
-        Log.d(TAG, "checkLocationPermission");
+    public boolean checkLocationPermission()
+    {
+        Log.d( TAG, "checkLocationPermission");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -319,7 +294,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE_LOCATION);
 
                 return false;
-            } else {
+            }
+            else
+            {
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                     showGPSDisabledAlertToUser();
 
@@ -328,7 +305,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
                 else mGoogleApiClient.reconnect();
             }
-        } else {
+        }
+        else
+        {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 
@@ -336,38 +315,5 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 buildGoogleApiClient();
         }
         return true;
-    }
-
-    public void getCurrentLocation(){
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "OnDestroy");
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.unregisterConnectionCallbacks(this);
-            mGoogleApiClient.unregisterConnectionFailedListener(this);
-
-            if (mGoogleApiClient.isConnected())
-                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-
-            mGoogleApiClient.disconnect();
-            mGoogleApiClient = null;
-        }
-        super.onDestroy();
-        android.os.Process.killProcess(android.os.Process.myPid());
-        Toast.makeText(this, "Shouldn't be displayed", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onMapClick(LatLng point) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(point));
-    }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        // TODO: load list of video
-
-        return false;
     }
 }
