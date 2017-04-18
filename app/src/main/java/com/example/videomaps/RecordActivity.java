@@ -143,6 +143,8 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             releaseMediaRecorder(); // release the MediaRecorder object
             mCamera.lock();         // take camera access back from MediaRecorder
 
+
+
             // inform the user that recording has stopped
             isRecording = false;
             setCaptureButtonStatus();
