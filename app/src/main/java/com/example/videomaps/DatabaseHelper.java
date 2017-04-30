@@ -46,7 +46,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 "CREATE TABLE IF NOT EXISTS " + Media.TABLE_NAME + " (" +
                         Media._ID + INT_TYPE + COMMA_SEP +
                         Media.PATH + TEXT_TYPE + COMMA_SEP +
-                        Media.DATE + DATE_TYPE + COMMA_SEP + " DEFAULT CURRENT_TIMESTAMP" +
+                        Media.DATE + DATE_TYPE + " DEFAULT CURRENT_TIMESTAMP" + COMMA_SEP +
                         Media.PLACE_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
                         " PRIMARY KEY (" + _ID + COMMA_SEP + PLACE_ID + " )" + " )";
     }
@@ -91,11 +91,11 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
     static public boolean addMedia(SQLiteDatabase db, String path, int place_id) {
 
-        ContentValues placeValue = new ContentValues();
-        placeValue.put(Media.PLACE_ID, Integer.toString(place_id));
-        placeValue.put(Media.DATE, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        placeValue.put(Media.PATH, path);
-        if (db.insert(DatabaseHelper.Place.TABLE_NAME, null, placeValue) == -1)
+        ContentValues mediaValue = new ContentValues();
+        mediaValue.put(Media.PLACE_ID, Integer.toString(place_id));
+        mediaValue.put(Media.DATE, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        mediaValue.put(Media.PATH, path);
+        if (db.insert(DatabaseHelper.Media.TABLE_NAME, null, mediaValue) == -1)
             return false;
         return true;
     }

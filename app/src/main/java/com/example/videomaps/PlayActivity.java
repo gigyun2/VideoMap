@@ -3,15 +3,13 @@ package com.example.videomaps;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NavUtils;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -35,7 +33,6 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -141,7 +138,8 @@ public class PlayActivity extends FragmentActivity implements
         simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
 
         Intent intent = getIntent();
-        path = intent.getExtras().getString("path", null);
+        //path = intent.getExtras().getString("path", null);
+        path = "/storage/emulated/0/DCIM/mvm/VID_20160828_130524.mp4";
         lat = intent.getExtras().getDouble("latitude", -33);
         lng = intent.getExtras().getDouble("longitude", 151);
         File f = null;

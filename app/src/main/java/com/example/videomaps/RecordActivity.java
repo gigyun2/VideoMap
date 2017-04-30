@@ -99,7 +99,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         Intent intent = getIntent();
-        pid = intent.getExtras().getInt("place_id", -1);
+        //pid = intent.getExtras().getInt("place_id", -1);
         lat = intent.getExtras().getDouble("latitude", -33);
         lng = intent.getExtras().getDouble("longitude", 151);
 

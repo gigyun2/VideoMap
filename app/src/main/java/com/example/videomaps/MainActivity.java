@@ -114,6 +114,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         @Override
         public void onClick(View V) {
             Intent actRecord = new Intent();
+            actRecord.putExtra("latitude", lat);
+            actRecord.putExtra("longitude", lng);
             actRecord.setClass(MainActivity.this, RecordActivity.class);
             startActivity(actRecord);
         }
@@ -123,6 +125,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         @Override
         public void onClick(View V) {
             Intent actPlay = new Intent();
+            //actPlay.putExtra("path", );
+            actPlay.putExtra("latitude", lat);
+            actPlay.putExtra("longitude", lng);
             actPlay.setClass(MainActivity.this, PlayActivity.class);
             startActivity(actPlay);
         }
@@ -183,7 +188,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public void onMapReady(GoogleMap map) {
-        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        mMap = map;
+
+        /*DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor=DatabaseHelper.queryPlaceAll(db);
         ArrayList<Integer> listPid=new ArrayList<Integer>();
@@ -192,7 +199,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         ArrayList<Double> listLat=new ArrayList<Double>();
         ArrayList<Double> listLng=new ArrayList<Double>();
         int totalPlace=0;
-        mMap = map;
+
 
         if(cursor!=null){
             if(cursor.moveToFirst()){
@@ -211,7 +218,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 }while(cursor.moveToNext());
             }
         }
-        LatLng place[]=new LatLng[totalPlace];
+        LatLng place[]=new LatLng[totalPlace];*/
 
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -426,7 +433,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public boolean onMarkerClick(Marker marker){
-        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        /*DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         lvVideoList=(ListView)findViewById(R.id.lvVideoList);
         final ArrayList<String> pathList=new ArrayList<String>();
@@ -459,7 +466,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 intent.putExtra("path",path);
                 startActivity(intent);
             }
-        });
+        });*/
         return false;
     }
 }

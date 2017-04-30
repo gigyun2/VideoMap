@@ -59,6 +59,7 @@
         android:layout_height="10dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_alignTop="@+id/btnRecord" />
+        android:layout_alignTop="@+id/btnRecord"
+        android:visibility="gone"/>
 
 </RelativeLayout>
