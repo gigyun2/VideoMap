@@ -12,10 +12,10 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.videomaps.MainActivity"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        tools:context="com.example.videomaps.MainActivity" />
 
     <ImageButton
         android:id="@+id/btnRecord"
@@ -26,8 +26,7 @@
         android:layout_marginBottom="10dp"
         android:background="@null"
         android:scaleType="fitCenter"
-        android:src="@mipmap/camera_record"
-        />
+        android:src="@mipmap/camera_record" />
 
     <ImageButton
         android:id="@+id/btnLocation"
@@ -36,10 +35,9 @@
         android:layout_alignBottom="@+id/btnRecord"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:background="@null"
         android:layout_marginRight="10dp"
-        android:src="@mipmap/camera_location"
-        />
+        android:background="@null"
+        android:src="@mipmap/camera_location" />
 
     <ImageButton
         android:id="@+id/btnTestPlay"
@@ -50,16 +48,60 @@
         android:layout_alignParentStart="true"
         android:layout_marginLeft="10dp"
         android:background="@null"
-        android:src="@mipmap/camera_play"
-        />
+        android:src="@mipmap/camera_play" />
 
     <ListView
         android:id="@+id/lvVideoList"
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
         android:layout_alignTop="@+id/btnRecord"
-        android:visibility="gone"/>
+        android:layout_centerHorizontal="true"
+        android:visibility="gone" />
+
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="1dp">
+
+        <fragment
+            android:id="@+id/place_autocomplete_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+            android:layout_centerInParent="true"
+            />
+        <!---<RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_margin="5dp">
+
+            <EditText
+                android:id="@+id/txtSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:maxLines="1"
+                android:background="@android:color/white"
+                android:hint="Search here"
+                android:textColor="@android:color/black"
+                android:layout_toLeftOf="@+id/btnSearch"
+                android:layout_centerVertical="true" />
+
+            <ImageButton
+                android:id="@+id/btnSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@null"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_search" />
+        </RelativeLayout>-->
+    </android.support.v7.widget.CardView>
+
 
 </RelativeLayout>

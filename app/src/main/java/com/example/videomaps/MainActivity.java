@@ -4,28 +4,33 @@ import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.location.*;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.content.*;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.*;
+import com.google.android.gms.location.places.*;
+import com.google.android.gms.location.places.ui.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+
+import android.support.v4.app.FragmentActivity;
 
 import android.database.Cursor;
 
@@ -50,13 +55,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final int REQUEST_CODE_LOCATION = 2000;
     private static final int REQUEST_CODE_GPS = 2001;
     private static final int REQUEST_ADD_REVIEW = 2002;
-    private static final int zoomToRate = 15;
+    private static final int zoomToRate = 17;
+
+    private static LatLng selectedLatLng;
+    private static boolean hasSearchMarker=false;
+    private static Marker searchMarker;
     //Permission variable(Android 6.0 or above
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        List<String> permissionList= getGrantedPermissions(this);
-        String[] permissions=permissionList.toArray(new String[permissionList.size()]);
+        List<String> permissionList = getGrantedPermissions(this);
+        String[] permissions = permissionList.toArray(new String[permissionList.size()]);
         final int permissionsAll = 1;
         if (!hasPermissions(this, permissions)) {
             ActivityCompat.requestPermissions(this, permissions, permissionsAll);
@@ -88,7 +97,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         granted.add(pi.requestedPermissions[i]);
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         return granted;
     }
 
@@ -189,7 +199,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-
         /*DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor=DatabaseHelper.queryPlaceAll(db);
@@ -250,19 +259,14 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
         } else
             buildGoogleApiClient();
-
         mMap.setOnMapClickListener(this);
-        /*
-        mMap.setOnMapLongClickListener(this);
-        mMap.setOnMarkerClickListener(this);
-        mMap.setOnInfoWindowClickListener(this);
-        */
     }
 
-    // after succeeded GoogleApiClient 객체 연결되었을 때 실행
+    // Succeed GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.d(TAG, "onConnected");
+        LatLng currentLatLng=null;
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             setGPS = true;
 
@@ -285,12 +289,14 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                     return;
                 // Move map to the current location
                 mMap.clear();
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                currentLatLng= new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
         }
+        // Place Searching
+        placeSearching(currentLatLng);
     }
 
     // google play service connection
@@ -350,6 +356,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this, this)
                 .build();
         mGoogleApiClient.connect();
     }
@@ -432,7 +441,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
 
     @Override
-    public boolean onMarkerClick(Marker marker){
+    public boolean onMarkerClick(Marker marker) {
         /*DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         lvVideoList=(ListView)findViewById(R.id.lvVideoList);
@@ -468,5 +477,35 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             }
         });*/
         return false;
+    }
+
+    public void placeSearching(LatLng currentLatLng){
+        System.out.println("Search place");
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        final double boundRange=1;
+        autocompleteFragment.setBoundsBias(new LatLngBounds(
+                new LatLng(currentLatLng.latitude-boundRange,currentLatLng.longitude-boundRange),
+                new LatLng(currentLatLng.latitude+boundRange,currentLatLng.longitude+boundRange)));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                if(hasSearchMarker){
+                    searchMarker.remove();
+                    hasSearchMarker=false;
+                }
+                selectedLatLng=place.getLatLng();
+                MarkerOptions selectedMark=new MarkerOptions().position(selectedLatLng).title(place.getName().toString());
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
+                searchMarker=mMap.addMarker(selectedMark);
+                hasSearchMarker=true;
+            }
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Toast.makeText(getApplicationContext(), "Search Error: " + status,Toast.LENGTH_SHORT);
+            }
+        });
     }
 }

@@ -239,7 +239,6 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-
     }
 
     @Override
