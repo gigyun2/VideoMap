@@ -152,8 +152,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
         return db.query(Place.TABLE_NAME, null, null, null, null, null, null);
     }
 
-    public Cursor queryPlace(double latitude, double longitude) {
-        SQLiteDatabase db = getReadableDatabase();
+    static public Cursor queryPlace(SQLiteDatabase db, double latitude, double longitude) {
 
         String[] projection = {
                 Place._ID,
