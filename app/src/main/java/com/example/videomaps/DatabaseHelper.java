@@ -51,6 +51,30 @@ class DatabaseHelper extends SQLiteOpenHelper {
                         " PRIMARY KEY (" + _ID + COMMA_SEP + PLACE_ID + " )" + " )";
     }
 
+/*
+    public static final class Hashtag implements BaseColumns {
+        public static final String NAME = "name";
+        public static final String TABLE_NAME = "hashtag";
+        public static final String _CREATE =
+                "CREATE TABLE IF NOT EXISTS " + Hashtag.TABLE_NAME + " (" +
+                        Hashtag.NAME + VARCHAR_TYPE + " PRIMARY KEY" + " )";
+    }
+
+    public static final class Tag_Review implements BaseColumns {
+        public static final String TAG_NAME = "tag_name";
+        public static final String REVIEW_ID = "review_id";
+        public static final String PLACE_ID = "place_id";
+        public static final String TABLE_NAME = "tag_review";
+        public static final String _CREATE =
+                "CREATE TABLE IF NOT EXISTS " + Tag_Review.TABLE_NAME + " (" +
+                        Tag_Review.TAG_NAME + INT_TYPE + " NOT NULL" + COMMA_SEP +
+                        Tag_Review.REVIEW_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
+                        Tag_Review.PLACE_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
+                        " PRIMARY KEY (" + TAG_NAME + COMMA_SEP + REVIEW_ID + COMMA_SEP + PLACE_ID + " )" +
+                " )";
+    }
+*/
+
     // If you change the database schema, you must increment the database version.
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "mvm.db";

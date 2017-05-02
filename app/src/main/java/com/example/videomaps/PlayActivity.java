@@ -139,7 +139,7 @@ public class PlayActivity extends FragmentActivity implements
 
         Intent intent = getIntent();
         //path = intent.getExtras().getString("path", null);
-        path = "/storage/emulated/0/DCIM/mvm/VID_20160828_130524.mp4";
+        path = "https://www.youtube.com/watch?v=ltxLeLGozDk";
         lat = intent.getExtras().getDouble("latitude", -33);
         lng = intent.getExtras().getDouble("longitude", 151);
         File f = null;

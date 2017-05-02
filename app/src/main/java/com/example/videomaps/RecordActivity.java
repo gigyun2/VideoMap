@@ -60,6 +60,8 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
     private boolean isRecording = false;
     private boolean cameraPrepared = false;
     private ImageButton captureButton;
+    private enum face { FRONT, BACK };
+    private face mfacing = face.BACK;
 
     private int pid;
     private double lat;
@@ -95,8 +97,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
 
-        // TODO: orientation changes with sensor
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 
         Intent intent = getIntent();
         //pid = intent.getExtras().getInt("place_id", -1);
@@ -131,6 +132,13 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         //new PreviewPrepareTask().doInBackground();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseMediaRecorder();
+        releaseCamera();
+    }
+
     /**
      * When recording, the button click stops recording, releases
      *  {@link android.media.MediaRecorder} and {@link android.hardware.Camera}. When not recording,
@@ -144,7 +152,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             try {
                 mMediaRecorder.stop();  // stop the recording
                 timerHandler.removeCallbacks(updateTimerThread);
-                timeSwapBuff += timeInMilliseconds;
+                timer.setText("00:00");
             } catch (RuntimeException e) {
                 Log.d(TAG, "RuntimeException: stop() is called immediately after start()");
                 //noinspection ResultOfMethodCallIgnored
@@ -184,6 +192,16 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             captureButton.setImageDrawable(getResources().getDrawable(R.mipmap.camera_record));
     }
 
+    public void onSwitchClick(View view) {
+        releaseMediaRecorder();
+        releaseCamera();
+        if (mfacing == face.FRONT)
+            mfacing = face.BACK;
+        else
+            mfacing = face.FRONT;
+        preparePreview();
+    }
+
     private void releaseMediaRecorder(){
         if (mMediaRecorder != null) {
             mMediaRecorder.reset();
@@ -201,6 +219,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
+            cameraPrepared = false;
         }
     }
 
@@ -244,7 +263,23 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void preparePreview(){
-        mCamera = CameraHelper.getDefaultCameraInstance();
+        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        if (mfacing == face.FRONT)
+            mCamera = CameraHelper.getDefaultFrontFacingCameraInstance();
+            android.hardware.Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_FRONT, info);
+        if (mfacing == face.BACK)
+            mCamera = CameraHelper.getDefaultBackFacingCameraInstance();
+            android.hardware.Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
+
+        int degree = (this.getResources().getConfiguration().orientation - 1) * 90;
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degree) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degree + 360) % 360;
+        }
+        mCamera.setDisplayOrientation(result);
 
         // Query camera to find all the sizes and choose the optimal size given the
         // dimensions of our preview surface.

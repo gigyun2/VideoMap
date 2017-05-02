@@ -1,4 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -31,32 +31,35 @@
             android:orientation="horizontal"
             tools:ignore="UselessParent">
 
-            <android.support.v7.widget.CardView
-                android:id="@+id/cardview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginEnd="15dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginTop="15dp"
-                android:alpha="0.8"
-                app:cardBackgroundColor="@color/cardview_light_background"
-                app:cardCornerRadius="3dp"
-                app:cardElevation="5dp">
+        </RelativeLayout>
+    </FrameLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+    <android.support.v7.widget.CardView
+        android:id="@+id/cardview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="15dp"
+        android:alpha="0.8"
+        app:cardBackgroundColor="@color/cardview_light_background"
+        app:cardCornerRadius="3dp"
+        app:cardElevation="5dp">
 
-                    <fragment
-                        class="com.google.android.gms.maps.MapFragment"
-                        android:id="@+id/mapView"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp" />
-                    <!--
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <fragment
+                android:id="@+id/mapView"
+                class="com.google.android.gms.maps.MapFragment"
+                android:layout_width="150dp"
+                android:layout_height="150dp" />
+            <!--
                     <TextView
                         android:id="@+id/location"
                         android:layout_width="match_parent"
@@ -64,10 +67,7 @@
                         android:padding="10dp"
                         android:text="Nearby:\n\nTEST" />
                         -->
-                </LinearLayout>
-            </android.support.v7.widget.CardView>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
 
-        </RelativeLayout>
-    </FrameLayout>
-
-</FrameLayout>
+</RelativeLayout>

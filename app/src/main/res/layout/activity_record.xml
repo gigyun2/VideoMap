@@ -58,7 +58,7 @@
                 android:foregroundGravity="bottom|center_horizontal"
                 android:minHeight="70dp"
                 android:minWidth="70dp"
-                android:onClick="onCaptureClick"
+                android:onClick="onSwitchClick"
                 android:scaleType="fitXY"
                 app:srcCompat="@mipmap/camera_switch" />
 
