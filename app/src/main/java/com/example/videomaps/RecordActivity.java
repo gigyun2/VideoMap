@@ -168,7 +168,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             SQLiteDatabase db = dh.getWritableDatabase();
             if (pid != -1) dh.addMedia(db, mOutputFile.getName(), pid);
             else {
-                Cursor c = dh.queryPlace(lat, lng);
+                Cursor c = dh.queryPlace(db,lat, lng);
                 if (c.moveToFirst()) dh.addMedia(db, mOutputFile.getPath(), c.getInt(0));
                 else {
                     pid = (int) dh.addPlace(db, null, lat, lng, null);
