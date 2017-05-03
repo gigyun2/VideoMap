@@ -159,7 +159,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 Place.NAME,
                 Place.DESCRIPTION
         };
-        String selection = Place.LATITUDE + " = ?" + Place.LONGITUDE + " = ?";
+        String selection = Place.LATITUDE + " = ? AND " + Place.LONGITUDE + " = ?";
         String[] selectionArgs = {Double.toString(latitude), Double.toString(longitude)};
         return db.query(Place.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
     }
