@@ -10,6 +10,7 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -38,19 +39,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.File;
+import java.util.HashMap;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class PlayActivity extends FragmentActivity implements
-        OnMapReadyCallback/*, GoogleMap.OnMapClickListener*/ {
-
+public class PlayActivity extends FragmentActivity implements OnMapReadyCallback {
+    private HashMap<String,Object> recordingInfo;
     private GoogleMap mMap;
     MapFragment mapFragment;
     private double lat = 40;
     private double lng = 151;
-
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -129,6 +129,17 @@ public class PlayActivity extends FragmentActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent=getIntent();
+        recordingInfo=(HashMap<String,Object>)intent.getSerializableExtra("recordingInfo");
+        if(recordingInfo!=null){
+            path=(String)recordingInfo.get("path");
+            lat=(Double)recordingInfo.get("lat");
+            lng=(Double)recordingInfo.get("lng");
+        }else{
+            Toast.makeText(this,"Play Error",Toast.LENGTH_SHORT);
+            finish();
+            return;
+        }
 
         setContentView(R.layout.activity_play);
 
@@ -136,12 +147,6 @@ public class PlayActivity extends FragmentActivity implements
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
         simpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.fullscreen_content);
-
-        Intent intent = getIntent();
-        //path = intent.getExtras().getString("path", null);
-        path = "https://www.youtube.com/watch?v=ltxLeLGozDk";
-        lat = intent.getExtras().getDouble("latitude", -33);
-        lng = intent.getExtras().getDouble("longitude", 151);
         File f = null;
         if (path != null)
             f = new File (path);
