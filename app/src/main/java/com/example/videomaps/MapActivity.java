@@ -38,17 +38,17 @@ public class MapActivity extends FragmentActivity implements
         LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener {
     private static final String TAG = "Map";
 
-    private GoogleMap mMap;
-    LocationManager locationManager;
-    MapFragment mapFragment;
-    boolean setGPS = false;
+    protected GoogleMap mMap;
+    protected LocationManager locationManager;
+    protected MapFragment mapFragment;
+    protected boolean setGPS = false;
     public double lng;
     public double lat;
-    private GoogleApiClient mGoogleApiClient = null;
-    private LocationRequest mLocationRequest;
-    private static final int REQUEST_CODE_LOCATION = 2000;
-    private static final int REQUEST_CODE_GPS = 2001;
-    private static final int REQUEST_ADD_REVIEW = 2002;
+    protected GoogleApiClient mGoogleApiClient = null;
+    protected LocationRequest mLocationRequest;
+    protected static final int REQUEST_CODE_LOCATION = 2000;
+    protected static final int REQUEST_CODE_GPS = 2001;
+    protected static final int REQUEST_ADD_REVIEW = 2002;
 
     // dialog for GPS ON
     @Override
@@ -84,14 +84,15 @@ public class MapActivity extends FragmentActivity implements
         if (requestCode == REQUEST_CODE_LOCATION &&
                 grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
                 (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED))
-        {
+                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 
-            if (mGoogleApiClient == null)buildGoogleApiClient();
+            if (mGoogleApiClient == null)
+                buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setCompassEnabled(true);
         }
     }
 
@@ -108,9 +109,7 @@ public class MapActivity extends FragmentActivity implements
                 Log.d( TAG, "onMapLoaded" );
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     checkLocationPermission();
-                }
-                else
-                {
+                } else {
                     if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS) {
                         Log.d(TAG, "onMapLoaded");
                         showGPSDisabledAlertToUser();
@@ -119,6 +118,7 @@ public class MapActivity extends FragmentActivity implements
                     if (mGoogleApiClient == null) buildGoogleApiClient();
                     mMap.setMyLocationEnabled(true);
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                    mMap.getUiSettings().setCompassEnabled(true);
                 }
             }
         });
@@ -158,10 +158,10 @@ public class MapActivity extends FragmentActivity implements
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
             Log.d( TAG, "onConnected " + "getLocationAvailability mGoogleApiClient.isConnected()="+mGoogleApiClient.isConnected() );
-            if ( !mGoogleApiClient.isConnected()  ) mGoogleApiClient.connect();
+            if (!mGoogleApiClient.isConnected())
+                mGoogleApiClient.connect();
 
-            if (setGPS && mGoogleApiClient.isConnected())
-            {
+            if (setGPS && mGoogleApiClient.isConnected()) {
                 Log.d( TAG, "onConnected " + "requestLocationUpdates" );
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
@@ -254,8 +254,7 @@ public class MapActivity extends FragmentActivity implements
     }
 
     // dialog for GPS enable
-    private void showGPSDisabledAlertToUser()
-    {
+    private void showGPSDisabledAlertToUser() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setMessage("GPS is currently off. Would you like to turn it on?")
                 .setCancelable(false)
@@ -279,8 +278,7 @@ public class MapActivity extends FragmentActivity implements
         alert.show();
     }
 
-    public boolean checkLocationPermission()
-    {
+    public boolean checkLocationPermission() {
         Log.d( TAG, "checkLocationPermission");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -294,9 +292,7 @@ public class MapActivity extends FragmentActivity implements
                         Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE_LOCATION);
 
                 return false;
-            }
-            else
-            {
+            } else {
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                     showGPSDisabledAlertToUser();
 
@@ -305,9 +301,7 @@ public class MapActivity extends FragmentActivity implements
 
                 else mGoogleApiClient.reconnect();
             }
-        }
-        else
-        {
+        } else {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
 

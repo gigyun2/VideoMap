@@ -16,6 +16,7 @@
 
 package com.example.videomaps;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -35,9 +36,14 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,8 +72,10 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
     private int rotation;
     private int pid;
-    private double lat;
-    private double lng;
+    private double mLat;
+    private double mLng;
+
+    private Dialog dialog;
 
     private TextView timer;
     private long startHTime = 0L;
@@ -103,8 +111,8 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
         Intent intent = getIntent();
         //pid = intent.getExtras().getInt("place_id", -1);
-        lat = intent.getExtras().getDouble("latitude", -33);
-        lng = intent.getExtras().getDouble("longitude", 151);
+        mLat = intent.getExtras().getDouble("latitude", 1000);
+        mLng = intent.getExtras().getDouble("longitude", 1000);
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
@@ -118,6 +126,10 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
+        lat = mLat;
+        lng = mLng;
+
+        dialog = new Dialog(this, android.R.style.Theme_Material_Dialog_NoActionBar);
     }
 
     @Override
@@ -164,14 +176,39 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             releaseMediaRecorder(); // release the MediaRecorder object
             mCamera.lock();         // take camera access back from MediaRecorder
 
+            if ((!setGPS && !mGoogleApiClient.isConnected()) ||
+                ((mLat > 90 || mLat < -90) && (mLng > 180 || mLng < -180))) {
+                dialog.setContentView(R.layout.map_dialog);
+                dialog.setCancelable(true);
+                dialog.findViewById(R.id.map_dialog_ok).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mLat = lat;
+                        mLng = lng;
+                        dialog.cancel();
+                    }
+                });
+
+                //CardView map_dialog_ll = (CardView)dialog.findViewById(R.id.map_dialog_ll);
+                //map_dialog_ll.getBackground().setAlpha(170);
+                dialog.show();
+
+                MapFragment dialogMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.dialog_mapView);
+                dialogMapFragment.getMapAsync(this);
+
+                // Set default location to HK
+                lat = 22.3964;
+                lng = 114.1095;
+            }
+
             DatabaseHelper dh = new DatabaseHelper(this);
             SQLiteDatabase db = dh.getWritableDatabase();
             if (pid != -1) dh.addMedia(db, mOutputFile.getName(), pid);
             else {
-                Cursor c = dh.queryPlace(lat, lng);
+                Cursor c = dh.queryPlace(db, mLat, mLng);
                 if (c.moveToFirst()) dh.addMedia(db, mOutputFile.getPath(), c.getInt(0));
                 else {
-                    pid = (int) dh.addPlace(db, null, lat, lng, null);
+                    pid = (int) dh.addPlace(db, null, mLat, mLng, null);
                     dh.addMedia(db, mOutputFile.getPath(), pid);
                 }
             }
@@ -187,18 +224,39 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         }
     }
 
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        super.onMapReady(map);
+
+        if ((!setGPS && !mGoogleApiClient.isConnected()) ||
+                ((mLat > 90 || mLat < -90) && (mLng > 180 || mLng < -180))) {
+            // Set default location to HK
+            CameraUpdate center= CameraUpdateFactory.newLatLng(new LatLng(22.3964, 114.1095));
+            CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
+
+            map.moveCamera(center);
+            map.animateCamera(zoom);
+        }
+    }
+
     private void setCaptureButtonStatus() {
+        int padding_in_px = (int) (15 * getResources().getDisplayMetrics().density + 0.5f);
         if (isRecording) {
             captureButton.setBackgroundDrawable(null);
             captureButton.setBackgroundResource(R.mipmap.camera_stop);
             switchButton.setClickable(false);
             switchButton.setBackgroundDrawable(null);
+            timer.setBackgroundDrawable(getResources().getDrawable(R.drawable.common_google_signin_btn_icon_dark_normal_background));
+            timer.setPadding(padding_in_px,padding_in_px,padding_in_px,padding_in_px);
         }
         else {
             captureButton.setBackgroundDrawable(null);
             captureButton.setBackgroundResource(R.mipmap.camera_record);
             switchButton.setClickable(true);
             switchButton.setBackgroundResource(R.mipmap.camera_switch);
+            timer.setBackgroundDrawable(getResources().getDrawable(R.drawable.common_google_signin_btn_icon_light_normal_background));
+            timer.setPadding(padding_in_px,padding_in_px,padding_in_px,padding_in_px);
         }
     }
 
