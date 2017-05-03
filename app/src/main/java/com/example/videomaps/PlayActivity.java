@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.support.v7.widget.CardView;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.FrameLayout;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -121,6 +123,38 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+    private final View.OnTouchListener mMapMoveListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent event)
+        {
+            //if (currentState != State.EDIT_MOVE) return false;
+
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            if (view.getId() != R.id.cardview) return false;
+
+            switch (event.getAction())
+            {
+                case MotionEvent.ACTION_MOVE:
+                    params.topMargin = (int) event.getRawY() - view.getHeight();
+                    params.leftMargin = (int) event.getRawX() - (view.getWidth() / 2);
+                    view.setLayoutParams(params);
+                    break;
+
+                case MotionEvent.ACTION_UP:
+                    params.topMargin = (int) event.getRawY() - view.getHeight();
+                    params.leftMargin = (int) event.getRawX() - (view.getWidth() / 2);
+                    view.setLayoutParams(params);
+                    break;
+
+                case MotionEvent.ACTION_DOWN:
+                    view.setLayoutParams(params);
+                    break;
+            }
+
+            return true;
+        }
+    };
+
 
     private SimpleExoPlayerView simpleExoPlayerView;
 
@@ -172,7 +206,9 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         // while interacting with the UI.
         // findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
+        mapFragment.getView().setClickable(false);
         mapFragment.getMapAsync(this);
+        findViewById(R.id.cardview).setOnTouchListener(mMapMoveListener);
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
                 Util.getUserAgent(this, "@string/title_activity_main"),

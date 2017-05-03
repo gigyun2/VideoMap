@@ -31,6 +31,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
@@ -110,7 +111,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
         Intent intent = getIntent();
-        //pid = intent.getExtras().getInt("place_id", -1);
+        pid = intent.getExtras().getInt("place_id", -1);
         mLat = intent.getExtras().getDouble("latitude", 1000);
         mLng = intent.getExtras().getDouble("longitude", 1000);
 
@@ -125,7 +126,9 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         //preparePreview();
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapView);
+        mapFragment.getView().setClickable(false);
         mapFragment.getMapAsync(this);
+
         lat = mLat;
         lng = mLng;
 
@@ -188,17 +191,10 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
                         dialog.cancel();
                     }
                 });
-
-                //CardView map_dialog_ll = (CardView)dialog.findViewById(R.id.map_dialog_ll);
-                //map_dialog_ll.getBackground().setAlpha(170);
                 dialog.show();
 
                 MapFragment dialogMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.dialog_mapView);
                 dialogMapFragment.getMapAsync(this);
-
-                // Set default location to HK
-                lat = 22.3964;
-                lng = 114.1095;
             }
 
             DatabaseHelper dh = new DatabaseHelper(this);
@@ -206,7 +202,10 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             if (pid != -1) dh.addMedia(db, mOutputFile.getName(), pid);
             else {
                 Cursor c = dh.queryPlace(db, mLat, mLng);
-                if (c.moveToFirst()) dh.addMedia(db, mOutputFile.getPath(), c.getInt(0));
+                if (c.moveToFirst()) {
+                    pid = c.getInt(c.getColumnIndex(DatabaseHelper.Place._ID));
+                    dh.addMedia(db, mOutputFile.getPath(), pid);
+                }
                 else {
                     pid = (int) dh.addPlace(db, null, mLat, mLng, null);
                     dh.addMedia(db, mOutputFile.getPath(), pid);
@@ -233,7 +232,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
                 ((mLat > 90 || mLat < -90) && (mLng > 180 || mLng < -180))) {
             // Set default location to HK
             CameraUpdate center= CameraUpdateFactory.newLatLng(new LatLng(22.3964, 114.1095));
-            CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
+            CameraUpdate zoom=CameraUpdateFactory.zoomTo(8);
 
             map.moveCamera(center);
             map.animateCamera(zoom);
