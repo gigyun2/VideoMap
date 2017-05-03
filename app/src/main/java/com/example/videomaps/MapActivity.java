@@ -14,12 +14,14 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -49,7 +51,7 @@ public class MapActivity extends FragmentActivity implements
     protected static final int REQUEST_CODE_LOCATION = 2000;
     protected static final int REQUEST_CODE_GPS = 2001;
     protected static final int REQUEST_ADD_REVIEW = 2002;
-
+    protected static LatLng currentLatLng;
     // dialog for GPS ON
     @Override
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
@@ -129,7 +131,7 @@ public class MapActivity extends FragmentActivity implements
                     || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 buildGoogleApiClient();
             else
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
         }
         else
             buildGoogleApiClient();
@@ -169,9 +171,9 @@ public class MapActivity extends FragmentActivity implements
                 Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if ( location == null ) return;
                 // Move map to the current location
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
             }
         }
     }
@@ -237,6 +239,8 @@ public class MapActivity extends FragmentActivity implements
             mGoogleApiClient = null;
         }
         super.onDestroy();
+        android.os.Process.killProcess(android.os.Process.myPid());
+        Toast.makeText(this, "Shouldn't be displayed", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -250,6 +254,9 @@ public class MapActivity extends FragmentActivity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this, this)
                 .build();
         mGoogleApiClient.connect();
     }
