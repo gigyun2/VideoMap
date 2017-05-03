@@ -5,14 +5,22 @@ import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.location.*;
+import android.media.ThumbnailUtils;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.Adapter;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -28,11 +36,7 @@ import com.google.android.gms.maps.model.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 
@@ -46,8 +50,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final String TAG = "Main";
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
-    //private RecyclerView rvVideoList;
-    private ListView lvVideoList;
+    private RecyclerView videoList;
+    //private ListView videoList;
     private boolean doubleBackToExitPressedOnce = false;
 
     private GoogleMap mMap;
@@ -66,6 +70,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static LatLng selectedLatLng;
     private static boolean hasSearchMarker=false;
     private static Marker searchMarker;
+    private SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     //Permission variable(Android 6.0 or above
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,10 +87,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         btnRecord = (ImageButton) findViewById(R.id.btnRecord);
         btnRecord.setOnClickListener(btnRecordListener);
-        btnTestPlay = (ImageButton) findViewById(R.id.btnTestPlay);
-        btnTestPlay.setOnClickListener(btnTestPlayListener);
         btnLocation = (ImageButton) findViewById(R.id.btnLocation);
         btnLocation.setOnClickListener(btnLocationListener);
+
         //rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -134,18 +138,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             actRecord.putExtra("longitude", lng);
             actRecord.setClass(MainActivity.this, RecordActivity.class);
             startActivity(actRecord);
-        }
-    };
-
-    private ImageButton.OnClickListener btnTestPlayListener = new ImageButton.OnClickListener() {
-        @Override
-        public void onClick(View V) {
-            Intent actPlay = new Intent();
-            //actPlay.putExtra("path", );
-            actPlay.putExtra("latitude", lat);
-            actPlay.putExtra("longitude", lng);
-            actPlay.setClass(MainActivity.this, PlayActivity.class);
-            startActivity(actPlay);
         }
     };
 
@@ -319,7 +311,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             ActivityCompat.finishAffinity(this);
             return;
         }
-
+        videoList.setVisibility(View.GONE);
         this.doubleBackToExitPressedOnce = true;
         Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
     }
@@ -426,11 +418,28 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         Cursor cursor=DatabaseHelper.queryPlaceAll(db);
 
         ArrayList<Hashtable<String,Object>> allRecordingLoc=new ArrayList<Hashtable<String, Object>>();
-        Hashtable<String,Object> recordingLoc=new Hashtable<String,Object>();
-
+        Hashtable<String,Object> recordingLoc;
+        mMap.setOnMarkerClickListener(this);
+        //Test data
+        recordingLoc=new Hashtable<String,Object>();
+        recordingLoc.put("id",12345);
+        recordingLoc.put("name","United College");
+        recordingLoc.put("desc","My College");
+        recordingLoc.put("lat",22.421);
+        recordingLoc.put("lng",114.205);
+        allRecordingLoc.add(recordingLoc);
+        recordingLoc=new Hashtable<String,Object>();
+        recordingLoc.put("id",12346);
+        recordingLoc.put("name","Chung Chi College");
+        recordingLoc.put("desc","Earilest College");
+        recordingLoc.put("lat",22.416);
+        recordingLoc.put("lng",114.208);
+        allRecordingLoc.add(recordingLoc);
+        //Test data
         if(cursor!=null){
             if(cursor.moveToFirst()){
                 do{
+                    recordingLoc=new Hashtable<String,Object>();
                     recordingLoc.put("id",cursor.getInt(cursor.getColumnIndex("id")));
                     recordingLoc.put("name",cursor.getString(cursor.getColumnIndex("name")));
                     recordingLoc.put("desc",cursor.getString(cursor.getColumnIndex("description")));
@@ -444,7 +453,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
     //Show Markers for Recording
     public void recordingMarker(ArrayList<Hashtable<String,Object>> allRecordingLoc){
-        Marker[] makerRecordingLoc=new Marker[allRecordingLoc.size()];
+        Marker[] markerRecordingLoc=new Marker[allRecordingLoc.size()];
         for(int i=0;i<allRecordingLoc.size();i++){
             Hashtable<String,Object> recording=allRecordingLoc.get(i);
             LatLng testLatLng=new LatLng((double)recording.get("lat"),(double)recording.get("lng"));
@@ -452,63 +461,74 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             MarkerOptions markerOptions=new MarkerOptions().title((String)recording.get("name"))
                     .snippet((String)recording.get("desc"))
                     .position(new LatLng((double)recording.get("lat"),(double)recording.get("lng")));
-            makerRecordingLoc[i]=mMap.addMarker(markerOptions);
+            markerRecordingLoc[i]=mMap.addMarker(markerOptions);
         }
     }
     @Override
-    public boolean onMarkerClick(Marker marker) {
+    public boolean onMarkerClick(final Marker marker) {
         showVideoList(marker);
-
-        /*lvVideoList=(ListView)findViewById(R.id.lvVideoList);
-        final ArrayList<String> pathList=new ArrayList<String>();
-        ArrayList<String> fileNameList=new ArrayList<String>();
-        ArrayList<String> pidList=new ArrayList<String>();
-        ArrayList<String> placeNameList=new ArrayList<String>();
-        ArrayList<String> latList=new ArrayList<String>();
-        ArrayList<String> longList=new ArrayList<String>();
-        ArrayList<String> descList=new ArrayList<String>();
-        ArrayAdapter<String> adapter;
-        Cursor cursor=DatabaseHelper.queryMedia(db,);
-
-        if(cursor!=null){
-            if(cursor.moveToFirst()){
-                do{
-                    String path= cursor.getString(cursor.getColumnIndex("path"));
-                    pathList.add(path);
-                    String filename=path.substring(path.lastIndexOf("/")+1);
-                    fileNameList.add(filename);
-                }while(cursor.moveToNext());
-            }
-        }
-        adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,fileNameList);
-        lvVideoList.setAdapter(adapter);
-        lvVideoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent=new Intent(MainActivity.this,PlayActivity.class);
-                String path = (String)pathList.get(i);
-                intent.putExtra("path",path);
-                startActivity(intent);
-            }
-        });*/
         return false;
     }
 
     public void showVideoList(Marker marker){
-        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        /*DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor=DatabaseHelper.queryPlace(db,marker.getPosition().latitude,marker.getPosition().longitude);
         cursor.moveToFirst();
         int markerId=cursor.getInt(cursor.getColumnIndex("id"));
-        cursor=DatabaseHelper.queryMedia(db,markerId);
-        ArrayList<Hashtable<String,Object>> recordingList=new ArrayList<Hashtable<String,Object>>();
-        Hashtable<String,Object> recording=new Hashtable<String,Object>();
-        if(cursor!=null){
+        cursor=DatabaseHelper.queryMedia(db,markerId);*/
+
+        final ArrayList<Hashtable<String,Object>> recordingList=new ArrayList<Hashtable<String,Object>>();
+        final ArrayList<Hashtable<String,Object>> recordingListView=new ArrayList<Hashtable<String,Object>>();
+        Hashtable<String,Object> recording;
+        Hashtable<String,Object> recordingView;
+        //Test data
+        //Entry 1
+        recording=new Hashtable<String,Object>();
+        recording.put("id",12345);
+        recording.put("path","/storage/emulated/0/DCIM/mvm/VID_20170502_212054.mp4");
+        try {
+            recording.put("date",sdf.format(sdf.parse("02/05/2017")));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        recording.put("lat",22.421);
+        recording.put("lng",114.205);
+        recordingList.add(recording);
+        recordingView=new Hashtable<String,Object>();
+        recordingView.put("filename","VID_20170502_212054.mp4");
+        recordingView.put("path","/storage/emulated/0/DCIM/mvm/VID_20170502_212054.mp4");
+        try {
+            recordingView.put("date",sdf.format(sdf.parse("02/05/2017")));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        recordingListView.add(recordingView);
+        //Entry 2
+        recording=new Hashtable<String,Object>();
+        recording.put("id",12346);
+        try {
+            recording.put("date",sdf.format(sdf.parse("03/05/2017")));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        recording.put("lat",22.421);
+        recording.put("lng",114.205);
+        recordingList.add(recording);
+        recordingView=new Hashtable<String,Object>();
+        recordingView.put("filename","VID_20170503_004742.mp4");
+        try {
+            recordingView.put("date",sdf.format(sdf.parse("03/05/2017")));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        recordingListView.add(recordingView);
+        //Test data
+        /*if(cursor!=null){
             if(cursor.moveToFirst()){
                 do{
                     String path=cursor.getString(cursor.getColumnIndex("path"));
                     String filename=path.substring((path.lastIndexOf("/")+1));
-                    SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/YYYY", Locale.getDefault());
                     Date date= null;
                     try {
                         date = sdf.parse(cursor.getString(cursor.getColumnIndex("date")));
@@ -516,15 +536,43 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         Toast.makeText(this,"Time Format Error",Toast.LENGTH_SHORT);
                         continue;
                     }
+                    recording=new Hashtable<String,Object>();
                     recording.put("id",cursor.getInt(cursor.getColumnIndex("id")));
                     recording.put("path",path);
-                    recording.put("filename",filename);
-                    recording.put("date",date);
+                    recording.put("date",sdf.format(date));
+                    recording.put("lat",marker.getPosition().latitude);
+                    recording.put("lng",marker.getPosition().longitude);
                     recordingList.add(recording);
+                    recordingView=new Hashtable<String,Object>();
+                    recordingView.put("filename",filename);
+                    recordingView.put("date",sdf.format(date));
+                    recordingListView.add(recordingView);
                 }while(cursor.moveToNext());
             }
-        }
+        }*/
 
+        /*ListAdapter adapter=new SimpleAdapter(this,recordingListView,android.R.layout.simple_list_item_2,new String[]{"filename","date"},new int[]{ android.R.id.text1,android.R.id.text2});
+        videoList.setAdapter(adapter);
+        videoList.setVisibility(View.VISIBLE);
+        videoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent playIntent=new Intent(MainActivity.this,PlayActivity.class);
+                Hashtable<String,Object>recordingInfo=recordingList.get(i);
+                System.out.println(recordingInfo.get("path").toString());
+                System.out.println(recordingInfo.get("date").toString());
+                System.out.println((Double)recordingInfo.get("lat")*-1.0);
+                System.out.println((Double)recordingInfo.get("lng")*-1.0);
+                playIntent.putExtra("recordingInfo",recordingInfo);
+                startActivity(playIntent);
+            }
+        });*/
+        CustomHorizontalAdapter customHorizontalAdapter=new CustomHorizontalAdapter(recordingList,recordingListView);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        videoList = (RecyclerView) findViewById(R.id.rvVideoList);
+        videoList.setLayoutManager(layoutManager);
+        videoList.setAdapter(customHorizontalAdapter);
+        videoList.setVisibility(View.VISIBLE);
     }
     // Search Place
     public void placeSearching(LatLng currentLatLng){
@@ -549,7 +597,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                     hasSearchMarker=false;
                 }
                 selectedLatLng=place.getLatLng();
-                MarkerOptions selectedMark=new MarkerOptions().position(selectedLatLng).title(place.getName().toString());
+                MarkerOptions selectedMark=new MarkerOptions().position(selectedLatLng).title(place.getName().toString()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLatLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
                 searchMarker=mMap.addMarker(selectedMark);
@@ -561,5 +609,57 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 Toast.makeText(getApplicationContext(), "Search Error: " + status,Toast.LENGTH_SHORT);
             }
         });
+    }
+
+    public class CustomHorizontalAdapter extends RecyclerView.Adapter<CustomHorizontalAdapter.MyViewHolder> {
+        private ArrayList<Hashtable<String,Object>> recordingListView,recordingList;
+        //RecyclerView Holder
+        class MyViewHolder extends RecyclerView.ViewHolder {
+            ImageView imgThumb;
+            TextView txtFilename,txtDate;
+
+            public MyViewHolder(View view) {
+                super(view);
+                imgThumb=(ImageView)view.findViewById(R.id.imgThumb);
+                txtFilename = (TextView) view.findViewById(R.id.txtFilename);
+                txtDate=(TextView)view.findViewById(R.id.txtDate);
+            }
+        }
+        //Construcutor
+        public CustomHorizontalAdapter(ArrayList<Hashtable<String,Object>> recordingList,ArrayList<Hashtable<String,Object>> recordingListView) {
+            this.recordingList=recordingList;
+            this.recordingListView = recordingListView;
+        }
+        @Override
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_list_video, parent, false);
+            return new MyViewHolder(itemView);
+        }
+        //Set  Recycler View
+        @Override
+        public void onBindViewHolder(final MyViewHolder holder, final int position) {
+            final Hashtable<String,Object> recording=recordingList.get(position);
+            final Hashtable<String,Object> recordingView=recordingListView.get(position);
+            Bitmap thumb=ThumbnailUtils.createVideoThumbnail((String)recording.get("path"), MediaStore.Images.Thumbnails.MINI_KIND);
+            holder.imgThumb.setImageBitmap(thumb);
+            holder.txtFilename.setText((String)recordingView.get("filename"));
+            holder.txtDate.setText((String)recordingView.get("date"));
+            holder.imgThumb.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent playIntent=new Intent(MainActivity.this,PlayActivity.class);
+                    System.out.println(recording.get("path").toString());
+                    System.out.println(recording.get("date").toString());
+                    System.out.println((Double)recording.get("lat")*-1.0);
+                    System.out.println((Double)recording.get("lng")*-1.0);
+                    playIntent.putExtra("recordingInfo",recording);
+                    startActivity(playIntent);
+                }
+            });
+        }
+        @Override
+        public int getItemCount() {
+            return recordingListView.size();
+        }
     }
 }
