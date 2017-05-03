@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.*;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -22,8 +23,13 @@ import com.google.android.gms.location.places.ui.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 
 import android.database.Cursor;
 
@@ -173,35 +179,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     @Override
     public void onMapReady(GoogleMap map) {
         super.onMapReady(map);
-        /*DatabaseHelper dbHelper=new DatabaseHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor=DatabaseHelper.queryPlaceAll(db);
-        ArrayList<Integer> listPid=new ArrayList<Integer>();
-        ArrayList<String> listName=new ArrayList<String>();
-        ArrayList<String> listDesc=new ArrayList<String>();
-        ArrayList<Double> listLat=new ArrayList<Double>();
-        ArrayList<Double> listLng=new ArrayList<Double>();
-        int totalPlace=0;
-
-
-        if(cursor!=null){
-            if(cursor.moveToFirst()){
-                do{
-                    int pid=cursor.getInt(cursor.getColumnIndex("id"));
-                    listPid.add(pid);
-                    String name=cursor.getString(cursor.getColumnIndex("name"));
-                    listName.add(name);
-                    String desc=cursor.getString(cursor.getColumnIndex("description"));
-                    listDesc.add(desc);
-                    double lat= cursor.getDouble(cursor.getColumnIndex("latitude"));
-                    listLat.add(lat);
-                    double lng= cursor.getDouble(cursor.getColumnIndex("longitude"));
-                    listLat.add(lng);
-                    totalPlace++;
-                }while(cursor.moveToNext());
-            }
-        }
-        LatLng place[]=new LatLng[totalPlace];*/
     }
 
     // Succeed GoogleApiClient 객체 연결되었을 때 실행
@@ -209,8 +186,27 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     public void onConnected(@Nullable Bundle bundle) {
         super.onConnected(bundle);
 
+        LatLng currentLatLng=null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (setGPS && mGoogleApiClient.isConnected()) {
+                Log.d(TAG, "onConnected " + "requestLocationUpdates");
+
+                Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                if (location == null)
+                    return;
+                // Move map to the current location
+                mMap.clear();
+                currentLatLng= new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            }
+        }
+        //Set Markers for All Recordings
+        showAllRecordingLoc();
         // Place Searching
-        //placeSearching(currentLatLng);
+        placeSearching(currentLatLng);
     }
 
     @Override
@@ -267,12 +263,48 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     public void onMapClick(LatLng point) {
         super.onMapClick(point);
     }
+    
+    public void showAllRecordingLoc(){
+        //Set Marker for All Recordings
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor=DatabaseHelper.queryPlaceAll(db);
 
+        ArrayList<Hashtable<String,Object>> allRecordingLoc=new ArrayList<Hashtable<String, Object>>();
+        Hashtable<String,Object> recordingLoc=new Hashtable<String,Object>();
+
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    recordingLoc.put("id",cursor.getInt(cursor.getColumnIndex("id")));
+                    recordingLoc.put("name",cursor.getString(cursor.getColumnIndex("name")));
+                    recordingLoc.put("desc",cursor.getString(cursor.getColumnIndex("description")));
+                    recordingLoc.put("lat",cursor.getDouble(cursor.getColumnIndex("latitude")));
+                    recordingLoc.put("lng",cursor.getDouble(cursor.getColumnIndex("longitude")));
+                    allRecordingLoc.add(recordingLoc);
+                }while(cursor.moveToNext());
+            }
+        }
+        recordingMarker(allRecordingLoc);
+    }
+    //Show Markers for Recording
+    public void recordingMarker(ArrayList<Hashtable<String,Object>> allRecordingLoc){
+        Marker[] makerRecordingLoc=new Marker[allRecordingLoc.size()];
+        for(int i=0;i<allRecordingLoc.size();i++){
+            Hashtable<String,Object> recording=allRecordingLoc.get(i);
+            LatLng testLatLng=new LatLng((double)recording.get("lat"),(double)recording.get("lng"));
+            System.out.println(testLatLng.toString());
+            MarkerOptions markerOptions=new MarkerOptions().title((String)recording.get("name"))
+                    .snippet((String)recording.get("desc"))
+                    .position(new LatLng((double)recording.get("lat"),(double)recording.get("lng")));
+            makerRecordingLoc[i]=mMap.addMarker(markerOptions);
+        }
+    }
     @Override
     public boolean onMarkerClick(Marker marker) {
-        /*DatabaseHelper dbHelper=new DatabaseHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        lvVideoList=(ListView)findViewById(R.id.lvVideoList);
+        showVideoList(marker);
+
+        /*lvVideoList=(ListView)findViewById(R.id.lvVideoList);
         final ArrayList<String> pathList=new ArrayList<String>();
         ArrayList<String> fileNameList=new ArrayList<String>();
         ArrayList<String> pidList=new ArrayList<String>();
@@ -307,13 +339,52 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return false;
     }
 
+    public void showVideoList(Marker marker){
+        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor=DatabaseHelper.queryPlace(db,marker.getPosition().latitude,marker.getPosition().longitude);
+        cursor.moveToFirst();
+        int markerId=cursor.getInt(cursor.getColumnIndex("id"));
+        cursor=DatabaseHelper.queryMedia(db,markerId);
+        ArrayList<Hashtable<String,Object>> recordingList=new ArrayList<Hashtable<String,Object>>();
+        Hashtable<String,Object> recording=new Hashtable<String,Object>();
+        if(cursor!=null){
+            if(cursor.moveToFirst()){
+                do{
+                    String path=cursor.getString(cursor.getColumnIndex("path"));
+                    String filename=path.substring((path.lastIndexOf("/")+1));
+                    SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/YYYY", Locale.getDefault());
+                    Date date= null;
+                    try {
+                        date = sdf.parse(cursor.getString(cursor.getColumnIndex("date")));
+                    } catch (ParseException e) {
+                        Toast.makeText(this,"Time Format Error",Toast.LENGTH_SHORT);
+                        continue;
+                    }
+                    recording.put("id",cursor.getInt(cursor.getColumnIndex("id")));
+                    recording.put("path",path);
+                    recording.put("filename",filename);
+                    recording.put("date",date);
+                    recordingList.add(recording);
+                }while(cursor.moveToNext());
+            }
+        }
+
+    }
+    // Search Place
     public void placeSearching(LatLng currentLatLng){
-        System.out.println("Search place");
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         final double boundRange=1;
-        autocompleteFragment.setBoundsBias(new LatLngBounds(
-                new LatLng(currentLatLng.latitude-boundRange,currentLatLng.longitude-boundRange),
-                new LatLng(currentLatLng.latitude+boundRange,currentLatLng.longitude+boundRange)));
+        if(currentLatLng!=null) {
+            autocompleteFragment.setBoundsBias(new LatLngBounds(
+                    new LatLng(currentLatLng.latitude - boundRange, currentLatLng.longitude - boundRange),
+                    new LatLng(currentLatLng.latitude + boundRange, currentLatLng.longitude + boundRange)));
+        }else{
+            autocompleteFragment.setBoundsBias(new LatLngBounds(
+                    new LatLng(lat-boundRange,lng-boundRange),
+                    new LatLng(lat+boundRange,lng+boundRange)
+            ));
+        }
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
