@@ -47,9 +47,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private RecyclerView videoList;
     private boolean doubleBackToExitPressedOnce = false;
 
-    MapFragment mapFragment;
+    private static PlaceAutocompleteFragment autocompleteFragment;
     private static final int zoomToRate = 17;
-    private boolean isOnConnectedInit=false;
+    private static boolean isOnConnectedInit=false;
     private static LatLng selectedLatLng;
     private static boolean hasSearchMarker=false;
     private static Marker searchMarker;
@@ -251,6 +251,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             ActivityCompat.finishAffinity(this);
             return;
         }
+
         if(videoList!=null) {
             if (videoList.getVisibility() != View.VISIBLE) {
                 this.doubleBackToExitPressedOnce = true;
@@ -258,11 +259,20 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             } else {
                 showBasicButtons();
                 hideVideoList();
+                return;
             }
         }else{
             this.doubleBackToExitPressedOnce = true;
-            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
         }
+
+        if(hasSearchMarker){
+            searchMarker.remove();
+            autocompleteFragment.setText("");
+            this.doubleBackToExitPressedOnce = false;
+            hasSearchMarker=false;
+            return;
+        }
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -451,7 +461,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     }
     // Search Place
     public void placeSearching(LatLng currentLatLng){
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         final double boundRange=1;
         if(currentLatLng!=null) {
             autocompleteFragment.setBoundsBias(new LatLngBounds(
