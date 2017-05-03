@@ -44,20 +44,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
     private RecyclerView videoList;
-    //private ListView videoList;
     private boolean doubleBackToExitPressedOnce = false;
 
-    private GoogleMap mMap;
-    LocationManager locationManager;
     MapFragment mapFragment;
-    boolean setGPS = false;
-    public double lng;
-    public double lat;
-    private GoogleApiClient mGoogleApiClient = null;
-    private LocationRequest mLocationRequest;
-    private static final int REQUEST_CODE_LOCATION = 2000;
-    private static final int REQUEST_CODE_GPS = 2001;
-    private static final int REQUEST_ADD_REVIEW = 2002;
     private static final int zoomToRate = 17;
 
     private static LatLng selectedLatLng;
