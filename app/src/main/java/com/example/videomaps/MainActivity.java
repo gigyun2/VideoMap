@@ -440,11 +440,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             if(cursor.moveToFirst()){
                 do{
                     recordingLoc=new Hashtable<String,Object>();
-                    recordingLoc.put("id",cursor.getInt(cursor.getColumnIndex("id")));
-                    recordingLoc.put("name",cursor.getString(cursor.getColumnIndex("name")));
-                    recordingLoc.put("desc",cursor.getString(cursor.getColumnIndex("description")));
-                    recordingLoc.put("lat",cursor.getDouble(cursor.getColumnIndex("latitude")));
-                    recordingLoc.put("lng",cursor.getDouble(cursor.getColumnIndex("longitude")));
+                    recordingLoc.put("id",cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
+                    //recordingLoc.put("name",cursor.getString(cursor.getColumnIndex(DatabaseHelper.Place.NAME)));
+                    //recordingLoc.put("desc",cursor.getString(cursor.getColumnIndex(DatabaseHelper.Place.DESCRIPTION)));
+                    recordingLoc.put("lat",cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LATITUDE)));
+                    recordingLoc.put("lng",cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LONGITUDE)));
                     allRecordingLoc.add(recordingLoc);
                 }while(cursor.moveToNext());
             }

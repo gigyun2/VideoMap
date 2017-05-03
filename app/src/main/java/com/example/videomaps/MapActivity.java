@@ -134,7 +134,8 @@ public class MapActivity extends FragmentActivity implements
         else
             buildGoogleApiClient();
 
-        mMap.setOnMapClickListener(this);
+        if (mapFragment != null && mapFragment.getView().isClickable())
+            mMap.setOnMapClickListener(this);
         /*
         mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
