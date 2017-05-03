@@ -10,6 +10,7 @@ import android.location.*;
 import android.media.ThumbnailUtils;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -48,7 +49,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     MapFragment mapFragment;
     private static final int zoomToRate = 17;
-
+    private boolean isOnConnectedInit=false;
     private static LatLng selectedLatLng;
     private static boolean hasSearchMarker=false;
     private static Marker searchMarker;
@@ -126,6 +127,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private ImageButton.OnClickListener btnLocationListener = new ImageButton.OnClickListener() {
         @Override
         public void onClick(View V) {
+            isOnConnectedInit=false;
             onConnected(bundle);
         }
     };
@@ -170,9 +172,12 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // Succeed GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        super.onConnected(bundle);
-        LatLng currentLatLng=null;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if(!isOnConnectedInit) {
+            super.onConnected(bundle);
+            isOnConnectedInit=true;
+        }
+        LatLng currentLatLng=MapActivity.currentLatLng;
+        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (setGPS && mGoogleApiClient.isConnected()) {
                 Log.d(TAG, "onConnected " + "requestLocationUpdates");
@@ -186,7 +191,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
-        }
+        }*/
         //Set Markers for All Recordings
         showAllRecordingLoc();
         // Place Searching
@@ -246,13 +251,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             ActivityCompat.finishAffinity(this);
             return;
         }
-
-        if(videoList.getVisibility()!=View.VISIBLE) {
+        if(videoList!=null) {
+            if (videoList.getVisibility() != View.VISIBLE) {
+                this.doubleBackToExitPressedOnce = true;
+                Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            } else {
+                showBasicButtons();
+                hideVideoList();
+            }
+        }else{
             this.doubleBackToExitPressedOnce = true;
             Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
-        }else {
-            showBasicButtons();
-            hideVideoList();
         }
     }
 
@@ -470,6 +479,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
                 searchMarker=mMap.addMarker(selectedMark);
                 hasSearchMarker=true;
+                isOnConnectedInit=true;
             }
             @Override
             public void onError(Status status) {
