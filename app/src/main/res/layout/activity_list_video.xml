@@ -18,7 +18,8 @@
             android:layout_alignParentLeft="true"
             android:scaleType="fitXY"
             android:background="@null"
-            android:src="@mipmap/ic_delete" />
+            android:src="@mipmap/ic_delete"
+            android:visibility="invisible"/>
 
         <ImageView
             android:id="@+id/imgThumb"
