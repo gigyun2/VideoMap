@@ -239,8 +239,6 @@ public class MapActivity extends FragmentActivity implements
             mGoogleApiClient = null;
         }
         super.onDestroy();
-        android.os.Process.killProcess(android.os.Process.myPid());
-        Toast.makeText(this, "Shouldn't be displayed", Toast.LENGTH_SHORT).show();
     }
 
     @Override
