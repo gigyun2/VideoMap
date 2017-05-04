@@ -324,7 +324,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         int markerId;
         if(cursor!=null&&cursor.getCount()>0){
             cursor.moveToFirst();
-            markerId=cursor.getInt(cursor.getColumnIndex("id"));
+            markerId=cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID));
             cursor=null;
             cursor=DatabaseHelper.queryMedia(db,markerId);
         }
@@ -378,17 +378,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         if(cursor!=null){
             if(cursor.moveToFirst()){
                 do{
-                    String path=cursor.getString(cursor.getColumnIndex("path"));
+                    String path=cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.PATH));
                     String filename=path.substring((path.lastIndexOf("/")+1));
                     Date date= null;
                     try {
-                        date = sdf.parse(cursor.getString(cursor.getColumnIndex("date")));
+                        date = sdf.parse(cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.DATE)));
                     } catch (ParseException e) {
                         Toast.makeText(this,"Time Format Error",Toast.LENGTH_SHORT);
                         continue;
                     }
                     recording=new Hashtable<String,Object>();
-                    recording.put("id",cursor.getInt(cursor.getColumnIndex("id")));
+                    recording.put("id",cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID)));
                     recording.put("path",path);
                     recording.put("date",sdf.format(date));
                     recording.put("lat",marker.getPosition().latitude);
