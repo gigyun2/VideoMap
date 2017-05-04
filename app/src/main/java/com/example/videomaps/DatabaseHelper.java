@@ -124,6 +124,25 @@ class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
+    static public int deleteMedia(SQLiteDatabase db, String path) {
+
+        String[] projection = {
+                Media._ID
+        };
+        String selection = Media.PATH + " = ?";
+        String[] selectionArgs = {path};
+        Cursor c = db.query(Media.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+
+        if (!c.moveToFirst())
+            return -1;
+
+        int mid = c.getInt(c.getColumnIndex(Media._ID));
+
+        String where = Media._ID + " = ?";
+        String[] whereArgs = {Integer.toString(mid)};
+        return db.delete(DatabaseHelper.Media.TABLE_NAME, where, whereArgs);
+    }
+
     static public Cursor queryMedia(SQLiteDatabase db, int place_id) {
 
         String[] projection = {
