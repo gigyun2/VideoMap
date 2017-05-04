@@ -111,9 +111,15 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
         Intent intent = getIntent();
-        pid = intent.getExtras().getInt("place_id", -1);
-        mLat = intent.getExtras().getDouble("latitude", 1000);
-        mLng = intent.getExtras().getDouble("longitude", 1000);
+        if (intent.getExtras() != null) {
+            pid = intent.getExtras().getInt("place_id", -1);
+            mLat = intent.getExtras().getDouble("latitude", 1000);
+            mLng = intent.getExtras().getDouble("longitude", 1000);
+        } else {
+            pid = -1;
+            mLat = 1000;
+            mLng = 1000;
+        }
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
