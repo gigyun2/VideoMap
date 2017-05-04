@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/imgThumb"
-        android:layout_width="358px"
-        android:layout_height="268px"
+        android:layout_width="409.6px"
+        android:layout_height="307.2px"
         android:scaleType="centerCrop"
         android:adjustViewBounds="true"
         android:layout_marginTop="1dp"

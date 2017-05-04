@@ -1,41 +1,38 @@
 package com.example.videomaps;
-
-import android.Manifest;
+//For Android services
+import android.os.Build;
+import android.os.Bundle;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.location.*;
-import android.media.ThumbnailUtils;
-import android.os.Build;
-import android.provider.MediaStore;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
+//For location services
+import android.location.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.*;
 import com.google.android.gms.location.places.*;
 import com.google.android.gms.location.places.ui.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
-
+//For text conversion
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
+//For database
+import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
 
 public class MainActivity extends MapActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -73,7 +70,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         btnLocation = (ImageButton) findViewById(R.id.btnLocation);
         btnLocation.setOnClickListener(btnLocationListener);
 
-        //rvVideoList = (RecyclerView) findViewById(R.id.rvVideoList);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -177,21 +173,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             isOnConnectedInit=true;
         }
         LatLng currentLatLng=MapActivity.currentLatLng;
-        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (setGPS && mGoogleApiClient.isConnected()) {
-                Log.d(TAG, "onConnected " + "requestLocationUpdates");
-                Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                if (location == null)
-                    return;
-                // Move map to the current location
-                mMap.clear();
-                currentLatLng= new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-            }
-        }*/
         //Set Markers for All Recordings
         showAllRecordingLoc();
         // Place Searching
@@ -281,11 +262,12 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         DatabaseHelper dbHelper=new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor=DatabaseHelper.queryPlaceAll(db);
-
+        //Set up the list to save data
         ArrayList<Hashtable<String,Object>> allRecordingLoc=new ArrayList<Hashtable<String, Object>>();
         Hashtable<String,Object> recordingLoc;
         mMap.setOnMarkerClickListener(this);
         //Test data
+        //Entry 1
         recordingLoc=new Hashtable<String,Object>();
         recordingLoc.put("id",12345);
         recordingLoc.put("name","United College");
@@ -293,10 +275,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         recordingLoc.put("lat",22.421);
         recordingLoc.put("lng",114.205);
         allRecordingLoc.add(recordingLoc);
+        //Entry 2
         recordingLoc=new Hashtable<String,Object>();
         recordingLoc.put("id",12346);
         recordingLoc.put("name","Chung Chi College");
-        recordingLoc.put("desc","Earilest College");
+        recordingLoc.put("desc","Earliest College");
         recordingLoc.put("lat",22.416);
         recordingLoc.put("lng",114.208);
         allRecordingLoc.add(recordingLoc);
@@ -353,10 +336,13 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         Hashtable<String,Object> recording;
         Hashtable<String,Object> recordingView;
         //Test data
+        String testPath,testFilename;
         //Entry 1
+        testPath="/storage/emulated/0/DCIM/mvm/VID_20170502_212054.mp4";
+        testFilename=testPath.substring((testPath.lastIndexOf("/")+1),(testPath.lastIndexOf(".")));
         recording=new Hashtable<String,Object>();
         recording.put("id",12345);
-        recording.put("path","/storage/emulated/0/DCIM/mvm/VID_20170502_212054.mp4");
+        recording.put("path",testPath);
         try {
             recording.put("date",sdf.format(sdf.parse("02/05/2017")));
         } catch (ParseException e) {
@@ -366,7 +352,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         recording.put("lng",114.205);
         recordingList.add(recording);
         recordingView=new Hashtable<String,Object>();
-        recordingView.put("filename","VID_20170502_212054.mp4");
+        recordingView.put("filename",testFilename);
         try {
             recordingView.put("date",sdf.format(sdf.parse("02/05/2017")));
         } catch (ParseException e) {
@@ -374,9 +360,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         }
         recordingListView.add(recordingView);
         //Entry 2
+        testPath="/storage/emulated/0/DCIM/mvm/VID_20170503_004742.mp4";
+        testFilename=testPath.substring((testPath.lastIndexOf("/")+1),(testPath.lastIndexOf(".")));
         recording=new Hashtable<String,Object>();
         recording.put("id",12346);
-        recording.put("path","/storage/emulated/0/DCIM/mvm/VID_20170503_004742.mp4");
+        recording.put("path",testPath);
         try {
             recording.put("date",sdf.format(sdf.parse("03/05/2017")));
         } catch (ParseException e) {
@@ -386,7 +374,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         recording.put("lng",114.205);
         recordingList.add(recording);
         recordingView=new Hashtable<String,Object>();
-        recordingView.put("filename","VID_20170503_004742.mp4");
+        recordingView.put("filename",testFilename);
         try {
             recordingView.put("date",sdf.format(sdf.parse("03/05/2017")));
         } catch (ParseException e) {
@@ -397,17 +385,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         if(cursor!=null){
             if(cursor.moveToFirst()){
                 do{
-                    String path=cursor.getString(cursor.getColumnIndex("path"));
-                    String filename=path.substring((path.lastIndexOf("/")+1));
+                    String path=cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.PATH));
+                    String filename=path.substring((path.lastIndexOf("/")+1),(path.lastIndexOf(".")));
                     Date date= null;
                     try {
-                        date = sdf.parse(cursor.getString(cursor.getColumnIndex("date")));
+                        date = sdf.parse(cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.DATE)));
                     } catch (ParseException e) {
                         Toast.makeText(this,"Time Format Error",Toast.LENGTH_SHORT);
                         continue;
                     }
                     recording=new Hashtable<String,Object>();
-                    recording.put("id",cursor.getInt(cursor.getColumnIndex("id")));
+                    recording.put("id",cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID)));
                     recording.put("path",path);
                     recording.put("date",sdf.format(date));
                     recording.put("lat",marker.getPosition().latitude);
@@ -537,11 +525,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 @Override
                 public void onClick(View v) {
                     Intent playIntent=new Intent(MainActivity.this,PlayActivity.class);
-                    System.out.print("Recording Info:");
-                    System.out.print(recording.get("path").toString()+" ");
-                    System.out.print(recording.get("date").toString()+" ");
-                    System.out.print((Double)recording.get("lat")*-1.0+" ");
-                    System.out.println((Double)recording.get("lng")*-1.0);
+                    final String TAG="Recording Information:";
+                    Log.i(TAG,(recording.get("path").toString())+" "
+                            +(recording.get("date").toString())+" "
+                            +((Double)recording.get("lat")*-1.0)+" "
+                            +((Double)recording.get("lng")*-1.0));
                     playIntent.putExtra("recordingInfo",recording);
                     startActivity(playIntent);
                 }
