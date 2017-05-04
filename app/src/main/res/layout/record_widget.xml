@@ -2,16 +2,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clickable="true"
     android:padding="@dimen/widget_margin">
 
     <ImageButton
         android:id="@+id/record_widget"
+        style="@style/Widget.AppCompat.ImageButton"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="10dp"
         android:background="@mipmap/camera_record"
         android:clickable="true"
-        android:scaleType="fitCenter"
-        app:srcCompat="@mipmap/camera_record" />
+        android:scaleType="fitCenter" />
 
 </FrameLayout>
