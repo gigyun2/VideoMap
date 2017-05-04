@@ -1,5 +1,6 @@
 package com.example.videomaps;
 //For Android services
+
 import android.os.Build;
 import android.os.Bundle;
 import android.content.*;
@@ -20,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 //For location services
 import android.location.*;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -41,8 +43,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static final String TAG = "Main";
 
     private static final int zoomToRate = 17;
-    private static final SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy");
-    private static final SimpleDateFormat dbSdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
@@ -50,10 +52,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static PlaceAutocompleteFragment autocompleteFragment;
 
     private boolean doubleBackToExitPressedOnce = false;
-    private static boolean isOnConnectedInit=false;
+    private static boolean isOnConnectedInit = false;
     private static LatLng selectedLatLng;
-    private static boolean hasSearchMarker=false;
+    private static boolean hasSearchMarker = false;
     private static Marker searchMarker;
+
     //Permission variable(Android 6.0 or above)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +130,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private ImageButton.OnClickListener btnLocationListener = new ImageButton.OnClickListener() {
         @Override
         public void onClick(View V) {
-            isOnConnectedInit=false;
+            isOnConnectedInit = false;
             onConnected(bundle);
         }
     };
@@ -135,7 +138,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // dialog for GPS ON
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode,resultCode,data);
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case REQUEST_CODE_GPS:
                 if (resultCode == RESULT_OK) {
@@ -161,7 +164,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -172,11 +175,11 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // Succeed GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if(!isOnConnectedInit) {
+        if (!isOnConnectedInit) {
             super.onConnected(bundle);
-            isOnConnectedInit=true;
+            isOnConnectedInit = true;
         }
-        LatLng currentLatLng=MapActivity.currentLatLng;
+        LatLng currentLatLng = MapActivity.currentLatLng;
         //Set Markers for All Recordings
         showAllRecordingLoc();
         // Place Searching
@@ -186,7 +189,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // google play service connection
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-       super.onConnectionFailed(result);
+        super.onConnectionFailed(result);
     }
 
     @Override
@@ -213,14 +216,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     protected void onStop() {
         super.onStop();
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
+
     @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
     }
+
     protected synchronized void buildGoogleApiClient() {
         super.buildGoogleApiClient();
     }
@@ -238,7 +244,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             return;
         }
 
-        if(videoList!=null) {
+        if (videoList != null) {
             if (videoList.getVisibility() != View.VISIBLE) {
                 this.doubleBackToExitPressedOnce = true;
                 Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
@@ -247,74 +253,78 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 hideVideoList();
                 return;
             }
-        }else{
+        } else {
             this.doubleBackToExitPressedOnce = true;
         }
 
-        if(hasSearchMarker){
+        if (hasSearchMarker) {
             searchMarker.remove();
             autocompleteFragment.setText("");
             this.doubleBackToExitPressedOnce = false;
-            hasSearchMarker=false;
+            hasSearchMarker = false;
             return;
         }
         Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
     }
 
 
-    public void showAllRecordingLoc(){
+    public void showAllRecordingLoc() {
         //Set Marker for All Recordings
-        DatabaseHelper dbHelper=new DatabaseHelper(this);
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor=DatabaseHelper.queryPlaceAll(db);
+        Cursor cursor = DatabaseHelper.queryPlaceAll(db);
         //Set up the list to save data
-        ArrayList<Hashtable<String,Object>> allRecordingLoc=new ArrayList<Hashtable<String, Object>>();
-        Hashtable<String,Object> recordingLoc;
+        ArrayList<Hashtable<String, Object>> allRecordingLoc = new ArrayList<Hashtable<String, Object>>();
+        Hashtable<String, Object> recordingLoc;
         mMap.setOnMarkerClickListener(this);
+        /*
         //Test data
         //Entry 1
-        recordingLoc=new Hashtable<String,Object>();
-        recordingLoc.put("id",12345);
-        recordingLoc.put("name","United College");
-        recordingLoc.put("desc","My College");
-        recordingLoc.put("lat",22.421);
-        recordingLoc.put("lng",114.205);
+        recordingLoc = new Hashtable<String, Object>();
+        recordingLoc.put("id", 12345);
+        recordingLoc.put("name", "United College");
+        recordingLoc.put("desc", "My College");
+        recordingLoc.put("lat", 22.421);
+        recordingLoc.put("lng", 114.205);
         allRecordingLoc.add(recordingLoc);
         //Entry 2
-        recordingLoc=new Hashtable<String,Object>();
-        recordingLoc.put("id",12346);
-        recordingLoc.put("name","Chung Chi College");
-        recordingLoc.put("desc","Earliest College");
-        recordingLoc.put("lat",22.416);
-        recordingLoc.put("lng",114.208);
+        recordingLoc = new Hashtable<String, Object>();
+        recordingLoc.put("id", 12346);
+        recordingLoc.put("name", "Chung Chi College");
+        recordingLoc.put("desc", "Earliest College");
+        recordingLoc.put("lat", 22.416);
+        recordingLoc.put("lng", 114.208);
         allRecordingLoc.add(recordingLoc);
         //Test data
-        if(cursor!=null){
-            if(cursor.moveToFirst()){
-                do{
-                    recordingLoc=new Hashtable<String,Object>();
-                    recordingLoc.put("id",cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
+        */
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    recordingLoc = new Hashtable<String, Object>();
+                    recordingLoc.put("id", cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
                     //recordingLoc.put("name",cursor.getString(cursor.getColumnIndex(DatabaseHelper.Place.NAME)));
                     //recordingLoc.put("desc",cursor.getString(cursor.getColumnIndex(DatabaseHelper.Place.DESCRIPTION)));
-                    recordingLoc.put("lat",cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LATITUDE)));
-                    recordingLoc.put("lng",cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LONGITUDE)));
+                    recordingLoc.put("lat", cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LATITUDE)));
+                    recordingLoc.put("lng", cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.Place.LONGITUDE)));
                     allRecordingLoc.add(recordingLoc);
-                }while(cursor.moveToNext());
+                } while (cursor.moveToNext());
             }
         }
         recordingMarker(allRecordingLoc);
     }
+
     //Show Markers for Recording
-    public void recordingMarker(ArrayList<Hashtable<String,Object>> allRecordingLoc){
-        Marker[] markerRecordingLoc=new Marker[allRecordingLoc.size()];
-        for(int i=0;i<allRecordingLoc.size();i++){
-            Hashtable<String,Object> recording=allRecordingLoc.get(i);
-            MarkerOptions markerOptions=new MarkerOptions().title((String)recording.get("name"))
-                    .snippet((String)recording.get("desc"))
-                    .position(new LatLng((double)recording.get("lat"),(double)recording.get("lng")));
-            markerRecordingLoc[i]=mMap.addMarker(markerOptions);
+    public void recordingMarker(ArrayList<Hashtable<String, Object>> allRecordingLoc) {
+        Marker[] markerRecordingLoc = new Marker[allRecordingLoc.size()];
+        for (int i = 0; i < allRecordingLoc.size(); i++) {
+            Hashtable<String, Object> recording = allRecordingLoc.get(i);
+            MarkerOptions markerOptions = new MarkerOptions().title((String) recording.get("name"))
+                    .snippet((String) recording.get("desc"))
+                    .position(new LatLng((double) recording.get("lat"), (double) recording.get("lng")));
+            markerRecordingLoc[i] = mMap.addMarker(markerOptions);
         }
     }
+
     @Override
     public boolean onMarkerClick(final Marker marker) {
         hideBasicButtons();
@@ -322,16 +332,17 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return false;
     }
 
-    public void showVideoList(Marker marker){
-        DatabaseHelper dbHelper=new DatabaseHelper(this);
+    public void showVideoList(Marker marker) {
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor=DatabaseHelper.queryPlace(db,marker.getPosition().latitude,marker.getPosition().longitude);
+        Cursor cursor = DatabaseHelper.queryPlace(db, marker.getPosition().latitude, marker.getPosition().longitude);
         int markerId;
 
-        final ArrayList<Hashtable<String,Object>> recordingList=new ArrayList<Hashtable<String,Object>>();
-        final ArrayList<Hashtable<String,Object>> recordingListView=new ArrayList<Hashtable<String,Object>>();
-        Hashtable<String,Object> recording;
-        Hashtable<String,Object> recordingView;
+        final ArrayList<Hashtable<String, Object>> recordingList = new ArrayList<Hashtable<String, Object>>();
+        final ArrayList<Hashtable<String, Object>> recordingListView = new ArrayList<Hashtable<String, Object>>();
+        Hashtable<String, Object> recording;
+        Hashtable<String, Object> recordingView;
+        /*
         //Test data
         String testPath,testFilename;
         //Entry 1
@@ -379,7 +390,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         }
         recordingListView.add(recordingView);
         //Test data
-        if(cursor!=null&&cursor.getCount()>0) {
+        */
+        if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
             markerId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID));
             cursor = null;
@@ -408,8 +420,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         recordingListView.add(recordingView);
                     } while (cursor.moveToNext());
                 }
-            }else{
-                Toast.makeText(this,"Marker Error",Toast.LENGTH_SHORT);
+            } else {
+                Toast.makeText(this, "Marker Error", Toast.LENGTH_SHORT);
             }
         }
 
@@ -429,7 +441,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 startActivity(playIntent);
             }
         });*/
-        CustomHorizontalAdapter customHorizontalAdapter=new CustomHorizontalAdapter(recordingList,recordingListView);
+        CustomHorizontalAdapter customHorizontalAdapter = new CustomHorizontalAdapter(recordingList, recordingListView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         videoList = (RecyclerView) findViewById(R.id.rvVideoList);
         videoList.setLayoutManager(layoutManager);
@@ -437,32 +449,33 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         videoList.setVisibility(View.VISIBLE);
     }
 
-    public void hideVideoList(){
-        if(videoList!=null)
+    public void hideVideoList() {
+        if (videoList != null)
             videoList.setVisibility(View.GONE);
     }
 
-    public void showBasicButtons(){
+    public void showBasicButtons() {
         btnRecord.setVisibility(View.VISIBLE);
         btnLocation.setVisibility(View.VISIBLE);
     }
 
-    public void hideBasicButtons(){
+    public void hideBasicButtons() {
         btnRecord.setVisibility(View.GONE);
         btnLocation.setVisibility(View.GONE);
     }
+
     // Search Place
-    public void placeSearching(LatLng currentLatLng){
+    public void placeSearching(LatLng currentLatLng) {
         autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-        final double boundRange=1;
-        if(currentLatLng!=null) {
+        final double boundRange = 1;
+        if (currentLatLng != null) {
             autocompleteFragment.setBoundsBias(new LatLngBounds(
                     new LatLng(currentLatLng.latitude - boundRange, currentLatLng.longitude - boundRange),
                     new LatLng(currentLatLng.latitude + boundRange, currentLatLng.longitude + boundRange)));
-        }else{
+        } else {
             autocompleteFragment.setBoundsBias(new LatLngBounds(
-                    new LatLng(lat-boundRange,lng-boundRange),
-                    new LatLng(lat+boundRange,lng+boundRange)
+                    new LatLng(lat - boundRange, lng - boundRange),
+                    new LatLng(lat + boundRange, lng + boundRange)
             ));
         }
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -471,74 +484,80 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 showBasicButtons();
                 hideVideoList();
                 // TODO: Get info about the selected place.
-                if(hasSearchMarker){
+                if (hasSearchMarker) {
                     searchMarker.remove();
-                    hasSearchMarker=false;
+                    hasSearchMarker = false;
                 }
-                selectedLatLng=place.getLatLng();
-                MarkerOptions selectedMark=new MarkerOptions().position(selectedLatLng).title(place.getName().toString()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                selectedLatLng = place.getLatLng();
+                MarkerOptions selectedMark = new MarkerOptions().position(selectedLatLng).title(place.getName().toString()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLatLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
-                searchMarker=mMap.addMarker(selectedMark);
-                hasSearchMarker=true;
-                isOnConnectedInit=true;
+                searchMarker = mMap.addMarker(selectedMark);
+                hasSearchMarker = true;
+                isOnConnectedInit = true;
             }
+
             @Override
             public void onError(Status status) {
                 // TODO: Handle the error.
-                Toast.makeText(getApplicationContext(), "Search Error: " + status,Toast.LENGTH_SHORT);
+                Toast.makeText(getApplicationContext(), "Search Error: " + status, Toast.LENGTH_SHORT);
             }
         });
     }
 
 
     public class CustomHorizontalAdapter extends RecyclerView.Adapter<CustomHorizontalAdapter.MyViewHolder> {
-        private ArrayList<Hashtable<String,Object>> recordingListView,recordingList;
+        private ArrayList<Hashtable<String, Object>> recordingListView, recordingList;
+
         //RecyclerView Holder
         class MyViewHolder extends RecyclerView.ViewHolder {
             ImageView imgThumb;
-            TextView txtFilename,txtDate;
+            TextView txtFilename, txtDate;
 
             public MyViewHolder(View view) {
                 super(view);
-                imgThumb=(ImageView)view.findViewById(R.id.imgThumb);
+                imgThumb = (ImageView) view.findViewById(R.id.imgThumb);
                 txtFilename = (TextView) view.findViewById(R.id.txtFilename);
-                txtDate=(TextView)view.findViewById(R.id.txtDate);
+                txtDate = (TextView) view.findViewById(R.id.txtDate);
             }
         }
+
         //Construcutor
-        public CustomHorizontalAdapter(ArrayList<Hashtable<String,Object>> recordingList,ArrayList<Hashtable<String,Object>> recordingListView) {
-            this.recordingList=recordingList;
+        public CustomHorizontalAdapter(ArrayList<Hashtable<String, Object>> recordingList, ArrayList<Hashtable<String, Object>> recordingListView) {
+            this.recordingList = recordingList;
             this.recordingListView = recordingListView;
         }
+
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_list_video, parent, false);
             return new MyViewHolder(itemView);
         }
+
         //Set  Recycler View
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
-            final Hashtable<String,Object> recording=recordingList.get(position);
-            final Hashtable<String,Object> recordingView=recordingListView.get(position);
-            Bitmap thumb=ThumbnailUtils.createVideoThumbnail((String)recording.get("path"), MediaStore.Video.Thumbnails.MINI_KIND);
+            final Hashtable<String, Object> recording = recordingList.get(position);
+            final Hashtable<String, Object> recordingView = recordingListView.get(position);
+            Bitmap thumb = ThumbnailUtils.createVideoThumbnail((String) recording.get("path"), MediaStore.Video.Thumbnails.MINI_KIND);
             holder.imgThumb.setImageBitmap(thumb);
-            holder.txtFilename.setText((String)recordingView.get("filename"));
-            holder.txtDate.setText((String)recordingView.get("date"));
+            holder.txtFilename.setText((String) recordingView.get("filename"));
+            holder.txtDate.setText((String) recordingView.get("date"));
             holder.imgThumb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent playIntent=new Intent(MainActivity.this,PlayActivity.class);
-                    final String TAG="Recording Information:";
-                    Log.i(TAG,(recording.get("path").toString())+" "
-                            +(recording.get("date").toString())+" "
-                            +((Double)recording.get("lat")*-1.0)+" "
-                            +((Double)recording.get("lng")*-1.0));
-                    playIntent.putExtra("recordingInfo",recording);
+                    Intent playIntent = new Intent(MainActivity.this, PlayActivity.class);
+                    final String TAG = "Recording Information:";
+                    Log.i(TAG, (recording.get("path").toString()) + " "
+                            + (recording.get("date").toString()) + " "
+                            + ((Double) recording.get("lat") * -1.0) + " "
+                            + ((Double) recording.get("lng") * -1.0));
+                    playIntent.putExtra("recordingInfo", recording);
                     startActivity(playIntent);
                 }
             });
         }
+
         @Override
         public int getItemCount() {
             return recordingListView.size();
