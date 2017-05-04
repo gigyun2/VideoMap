@@ -39,18 +39,21 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         com.google.android.gms.location.LocationListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "Main";
+
+    private static final int zoomToRate = 17;
+    private static final SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat dbSdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     private Bundle bundle;
     private ImageButton btnRecord, btnTestPlay, btnLocation;
     private RecyclerView videoList;
-    private boolean doubleBackToExitPressedOnce = false;
-
     private static PlaceAutocompleteFragment autocompleteFragment;
-    private static final int zoomToRate = 17;
+
+    private boolean doubleBackToExitPressedOnce = false;
     private static boolean isOnConnectedInit=false;
     private static LatLng selectedLatLng;
     private static boolean hasSearchMarker=false;
     private static Marker searchMarker;
-    private SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     //Permission variable(Android 6.0 or above)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +120,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             actRecord.putExtra("longitude", lng);
             actRecord.setClass(MainActivity.this, RecordActivity.class);
             startActivity(actRecord);
+
         }
     };
 
@@ -227,6 +231,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
 
     @Override
     public void onBackPressed() {
+        System.out.println("Back Pressed");
         if (doubleBackToExitPressedOnce) {
             super.onBackPressed();
             ActivityCompat.finishAffinity(this);
@@ -304,8 +309,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         Marker[] markerRecordingLoc=new Marker[allRecordingLoc.size()];
         for(int i=0;i<allRecordingLoc.size();i++){
             Hashtable<String,Object> recording=allRecordingLoc.get(i);
-            LatLng testLatLng=new LatLng((double)recording.get("lat"),(double)recording.get("lng"));
-            System.out.println(testLatLng.toString());
             MarkerOptions markerOptions=new MarkerOptions().title((String)recording.get("name"))
                     .snippet((String)recording.get("desc"))
                     .position(new LatLng((double)recording.get("lat"),(double)recording.get("lng")));
@@ -324,12 +327,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor=DatabaseHelper.queryPlace(db,marker.getPosition().latitude,marker.getPosition().longitude);
         int markerId;
-        if(cursor!=null&&cursor.getCount()>0){
-            cursor.moveToFirst();
-            markerId=cursor.getInt(cursor.getColumnIndex("id"));
-            cursor=null;
-            cursor=DatabaseHelper.queryMedia(db,markerId);
-        }
 
         final ArrayList<Hashtable<String,Object>> recordingList=new ArrayList<Hashtable<String,Object>>();
         final ArrayList<Hashtable<String,Object>> recordingListView=new ArrayList<Hashtable<String,Object>>();
@@ -382,30 +379,37 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         }
         recordingListView.add(recordingView);
         //Test data
-        if(cursor!=null){
-            if(cursor.moveToFirst()){
-                do{
-                    String path=cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.PATH));
-                    String filename=path.substring((path.lastIndexOf("/")+1),(path.lastIndexOf(".")));
-                    Date date= null;
-                    try {
-                        date = sdf.parse(cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.DATE)));
-                    } catch (ParseException e) {
-                        Toast.makeText(this,"Time Format Error",Toast.LENGTH_SHORT);
-                        continue;
-                    }
-                    recording=new Hashtable<String,Object>();
-                    recording.put("id",cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID)));
-                    recording.put("path",path);
-                    recording.put("date",sdf.format(date));
-                    recording.put("lat",marker.getPosition().latitude);
-                    recording.put("lng",marker.getPosition().longitude);
-                    recordingList.add(recording);
-                    recordingView=new Hashtable<String,Object>();
-                    recordingView.put("filename",filename);
-                    recordingView.put("date",sdf.format(date));
-                    recordingListView.add(recordingView);
-                }while(cursor.moveToNext());
+        if(cursor!=null&&cursor.getCount()>0) {
+            cursor.moveToFirst();
+            markerId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID));
+            cursor = null;
+            cursor = DatabaseHelper.queryMedia(db, markerId);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        String path = cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.PATH));
+                        String filename = path.substring((path.lastIndexOf("/") + 1), (path.lastIndexOf(".")));
+                        Date date = null;
+                        try {
+                            date = dbSdf.parse(cursor.getString(cursor.getColumnIndex(DatabaseHelper.Media.DATE)));
+                        } catch (ParseException e) {
+                            Toast.makeText(this, "", Toast.LENGTH_SHORT);
+                        }
+                        recording = new Hashtable<String, Object>();
+                        recording.put("id", cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID)));
+                        recording.put("path", path);
+                        recording.put("date", sdf.format(date));
+                        recording.put("lat", marker.getPosition().latitude);
+                        recording.put("lng", marker.getPosition().longitude);
+                        recordingList.add(recording);
+                        recordingView = new Hashtable<String, Object>();
+                        recordingView.put("filename", filename);
+                        recordingView.put("date", sdf.format(date));
+                        recordingListView.add(recordingView);
+                    } while (cursor.moveToNext());
+                }
+            }else{
+                Toast.makeText(this,"Marker Error",Toast.LENGTH_SHORT);
             }
         }
 
