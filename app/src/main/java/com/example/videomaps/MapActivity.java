@@ -52,6 +52,7 @@ public class MapActivity extends FragmentActivity implements
     protected static final int REQUEST_CODE_GPS = 2001;
     protected static final int REQUEST_ADD_REVIEW = 2002;
     protected static LatLng currentLatLng;
+    protected static final int roundPlaces=8;
     // dialog for GPS ON
     @Override
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
@@ -62,7 +63,6 @@ public class MapActivity extends FragmentActivity implements
                 if (resultCode == RESULT_OK) {
                     if ( locationManager == null)
                         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
                     if ( locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                         setGPS = true;
                         mapFragment.getMapAsync(this);
@@ -89,7 +89,6 @@ public class MapActivity extends FragmentActivity implements
                         || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !setGPS)
                 showGPSDisabledAlertToUser();
-
             if (mGoogleApiClient == null)
                 buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
@@ -170,6 +169,9 @@ public class MapActivity extends FragmentActivity implements
 
                 Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if ( location == null ) return;
+                //Round off the location's latlng
+                location.setLatitude(locationRound(location.getLatitude(),roundPlaces));
+                location.setLongitude(locationRound(location.getLongitude(),roundPlaces));
                 // Move map to the current location
                 currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLatLng));
@@ -243,8 +245,9 @@ public class MapActivity extends FragmentActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        lat = location.getLatitude();
-        lng = location.getLongitude();
+        //Round off the location's latlng
+        lat = locationRound(location.getLatitude(),roundPlaces);
+        lng = locationRound(location.getLongitude(),roundPlaces);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -315,5 +318,14 @@ public class MapActivity extends FragmentActivity implements
                 buildGoogleApiClient();
         }
         return true;
+    }
+    //Round off the location to n decimal places
+    public static double locationRound(double value,int n){
+        if (n < 0)
+            throw new IllegalArgumentException();
+        long factor = (long) Math.pow(10, n);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 }
