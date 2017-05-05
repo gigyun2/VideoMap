@@ -1,6 +1,7 @@
 package com.example.videomaps;
 //For Android services
 
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.content.*;
@@ -60,8 +61,9 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     private static LatLng selectedLatLng;
     private static boolean hasSearchMarker = false;
     private static Marker searchMarker;
-    private boolean backFromIntent=false;
-    private static ArrayList<Marker> markerRecordingLoc=new ArrayList<Marker>();
+    private boolean backFromIntent = false;
+    private static ArrayList<Marker> markerRecordingLoc = new ArrayList<Marker>();
+
     //Permission variable(Android 6.0 or above)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +129,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             actRecord.putExtra("latitude", lat);
             actRecord.putExtra("longitude", lng);
             actRecord.setClass(MainActivity.this, RecordActivity.class);
-            backFromIntent=true;
+            backFromIntent = true;
             startActivity(actRecord);
 
         }
@@ -181,7 +183,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     // Succeed GoogleApiClient 객체 연결되었을 때 실행
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
         if (!isOnConnectedInit) {
             super.onConnected(bundle);
             isOnConnectedInit = true;
@@ -227,7 +228,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(!backFromIntent) {
+        System.out.println("backFromIntent:" + backFromIntent);
+        if (!backFromIntent) {
             android.os.Process.killProcess(android.os.Process.myPid());
             Toast.makeText(this, "Shouldn't be displayed", Toast.LENGTH_SHORT).show();
         }
@@ -292,8 +294,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
-                    Cursor mediaCursor= DatabaseHelper.queryMedia(db,cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
-                    if(mediaCursor!=null&&mediaCursor.getCount()>0) {
+                    Cursor mediaCursor = DatabaseHelper.queryMedia(db, cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
+                    if (mediaCursor != null && mediaCursor.getCount() > 0) {
                         recordingLoc = new Hashtable<String, Object>();
                         recordingLoc.put("id", cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Place._ID)));
                         //recordingLoc.put("name",cursor.getString(cursor.getColumnIndex(DatabaseHelper.Place.NAME)));
@@ -327,13 +329,13 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         return false;
     }
 
-    public void showVideoList( Marker marker) {
+    public void showVideoList(Marker marker) {
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         Cursor cursor = null;
-        if(marker!=null)
-            cursor=DatabaseHelper.queryPlace(db, marker.getPosition().latitude, marker.getPosition().longitude);
+        if (marker != null)
+            cursor = DatabaseHelper.queryPlace(db, marker.getPosition().latitude, marker.getPosition().longitude);
         final ArrayList<Hashtable<String, Object>> recordingList = new ArrayList<Hashtable<String, Object>>();
         final ArrayList<Hashtable<String, Object>> recordingListView = new ArrayList<Hashtable<String, Object>>();
 
@@ -357,7 +359,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                         }
                         recording = new Hashtable<String, Object>();
                         recording.put("id", cursor.getInt(cursor.getColumnIndex(DatabaseHelper.Media._ID)));
-                        recording.put("pid",pid);
+                        recording.put("pid", pid);
                         recording.put("path", path);
                         recording.put("date", sdf.format(date));
                         recording.put("lat", marker.getPosition().latitude);
@@ -438,23 +440,23 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         });
     }
 
-    public void removeVideoListItem(LatLng markerPosition,int place_id){
+    public void removeVideoListItem(LatLng markerPosition, int place_id) {
         DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor=DatabaseHelper.queryMedia(db,place_id);
-        Marker changeMarker=null;
+        Cursor cursor = DatabaseHelper.queryMedia(db, place_id);
+        Marker changeMarker = null;
         int markerId;
-        for(markerId=0;markerId<markerRecordingLoc.size();markerId++){
-            if(markerRecordingLoc.get(markerId).getPosition()==markerPosition){
-                changeMarker=markerRecordingLoc.get(markerId);
+        for (markerId = 0; markerId < markerRecordingLoc.size(); markerId++) {
+            if (markerRecordingLoc.get(markerId).getPosition().equals(markerPosition)) {
+                changeMarker = markerRecordingLoc.get(markerId);
                 break;
             }
         }
 
-        if(cursor.getCount()>0){
+        if (cursor.getCount() > 0) {
             hideVideoList();
             showVideoList(changeMarker);
-        }else{
+        } else {
             changeMarker.remove();
             markerRecordingLoc.remove(markerId);
             hideVideoList();
@@ -466,6 +468,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         private ArrayList<Hashtable<String, Object>> recordingListView, recordingList;
         DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+
         //RecyclerView Holder
         class MyViewHolder extends RecyclerView.ViewHolder {
             ImageView imgThumb;
@@ -494,7 +497,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
         //Set  Recycler View
         @Override
         public void onBindViewHolder(final MyViewHolder holder, final int position) {
-            if(recordingList==null||recordingListView==null)
+            if (recordingList == null || recordingListView == null)
                 return;
             final Hashtable<String, Object> recording = recordingList.get(position);
             final Hashtable<String, Object> recordingView = recordingListView.get(position);
@@ -512,7 +515,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                             + ((Double) recording.get("lat") * -1.0) + " "
                             + ((Double) recording.get("lng") * -1.0));
                     playIntent.putExtra("recordingInfo", recording);
-                    backFromIntent=true;
+                    backFromIntent = true;
                     startActivity(playIntent);
                 }
             });
@@ -522,23 +525,23 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 public boolean onLongClick(View view) {
                     new AlertDialog.Builder(MainActivity.this).setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle("Delete")
-                            .setMessage("Are you sure to delete "+recordingView.get("filename")+" ?")
+                            .setMessage("Are you sure to delete " + recordingView.get("filename") + " ?")
                             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    String deletePath=(String)recording.get("path");
-                                    System.out.println("Deletion Path:"+deletePath);
-                                    int deleteMediaCount=DatabaseHelper.deleteMedia(db,deletePath);
-                                    System.out.println("Meida Count:"+deleteMediaCount);
-                                    if(deleteMediaCount>0){
-                                        File deleteFile=new File(deletePath);
-                                        boolean isDeleteFile=deleteFile.delete();
-                                        System.out.println("Delete Status:"+isDeleteFile);
-                                        if(!isDeleteFile)
-                                            Toast.makeText(getApplicationContext(),"Deletion Error",Toast.LENGTH_SHORT);
+                                    String deletePath = (String) recording.get("path");
+                                    System.out.println("Deletion Path:" + deletePath);
+                                    int deleteMediaCount = DatabaseHelper.deleteMedia(db, deletePath);
+                                    System.out.println("Meida Count:" + deleteMediaCount);
+                                    if (deleteMediaCount > 0) {
+                                        File deleteFile = new File(deletePath);
+                                        boolean isDeleteFile = deleteFile.delete();
+                                        System.out.println("Delete Status:" + isDeleteFile);
+                                        if (!isDeleteFile)
+                                            Toast.makeText(getApplicationContext(), "Deletion Error", Toast.LENGTH_SHORT);
                                     }
-                                    LatLng recordingLatLng=new LatLng((Double)recording.get("lat"),(Double)recording.get("lng"));
-                                    MainActivity.this.removeVideoListItem(recordingLatLng,(int)recording.get("pid"));
+                                    LatLng recordingLatLng = new LatLng((Double) recording.get("lat"), (Double) recording.get("lng"));
+                                    MainActivity.this.removeVideoListItem(recordingLatLng, (int) recording.get("pid"));
                                 }
                             }).setNegativeButton("No", null).show();
                     return false;
