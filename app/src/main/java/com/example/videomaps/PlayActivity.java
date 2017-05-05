@@ -297,4 +297,12 @@ public class PlayActivity extends FragmentActivity implements OnMapReadyCallback
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+    //Stop playing after pressing back button
+    @Override
+    public void onBackPressed(){
+        System.out.println("OnBackPressed");
+        super.onBackPressed();
+        finish();
+        return;
+    }
 }
