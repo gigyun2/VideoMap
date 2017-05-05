@@ -426,7 +426,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 selectedLatLng = place.getLatLng();
                 MarkerOptions selectedMark = new MarkerOptions().position(selectedLatLng).title(place.getName().toString()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLatLng));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(zoomToRate));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(19));
                 searchMarker = mMap.addMarker(selectedMark);
                 hasSearchMarker = true;
                 isOnConnectedInit = true;
