@@ -228,7 +228,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        System.out.println("backFromIntent:" + backFromIntent);
         if (!backFromIntent) {
             android.os.Process.killProcess(android.os.Process.myPid());
             Toast.makeText(this, "Shouldn't be displayed", Toast.LENGTH_SHORT).show();
@@ -375,7 +374,6 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 Toast.makeText(this, "Marker Error", Toast.LENGTH_SHORT);
             }
         }
-        System.out.println("Video List:"+recordingList.toString());
         CustomHorizontalAdapter customHorizontalAdapter = new CustomHorizontalAdapter(recordingList, recordingListView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         videoList = (RecyclerView) findViewById(R.id.rvVideoList);
@@ -457,10 +455,8 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             hideVideoList();
             showVideoList(changeMarker);
         } else {
-            System.out.println("Change Maker"+changeMarker.getPosition().toString());
             changeMarker.setVisible(false);
             changeMarker.remove();
-            System.out.println("marker should be removed");
             markerRecordingLoc.remove(markerId);
             hideVideoList();
             showBasicButtons();
@@ -533,9 +529,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     String deletePath = (String) recording.get("path");
-                                    System.out.println("Deletion Path:" + deletePath);
                                     int deleteMediaCount = DatabaseHelper.deleteMedia(db, deletePath);
-                                    System.out.println("Meida Count:" + deleteMediaCount);
                                     if (deleteMediaCount > 0) {
                                         File deleteFile = new File(deletePath);
                                         boolean isDeleteFile = deleteFile.delete();
