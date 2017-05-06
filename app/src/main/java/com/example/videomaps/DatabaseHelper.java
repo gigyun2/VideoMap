@@ -138,8 +138,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
         int mid = c.getInt(c.getColumnIndex(Media._ID));
 
-        String where = Media._ID + " = ?";
-        String[] whereArgs = {Integer.toString(mid)};
+        String where = Media.PATH + " = ?";
+        String[] whereArgs = {path};
         return db.delete(DatabaseHelper.Media.TABLE_NAME, where, whereArgs);
     }
 
