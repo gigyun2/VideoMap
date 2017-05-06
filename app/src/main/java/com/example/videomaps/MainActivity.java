@@ -375,7 +375,7 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
                 Toast.makeText(this, "Marker Error", Toast.LENGTH_SHORT);
             }
         }
-
+        System.out.println("Video List:"+recordingList.toString());
         CustomHorizontalAdapter customHorizontalAdapter = new CustomHorizontalAdapter(recordingList, recordingListView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         videoList = (RecyclerView) findViewById(R.id.rvVideoList);
@@ -457,7 +457,10 @@ public class MainActivity extends MapActivity implements GoogleApiClient.Connect
             hideVideoList();
             showVideoList(changeMarker);
         } else {
+            System.out.println("Change Maker"+changeMarker.getPosition().toString());
+            changeMarker.setVisible(false);
             changeMarker.remove();
+            System.out.println("marker should be removed");
             markerRecordingLoc.remove(markerId);
             hideVideoList();
             showBasicButtons();
