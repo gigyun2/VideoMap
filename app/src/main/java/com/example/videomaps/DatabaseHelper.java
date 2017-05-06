@@ -44,7 +44,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
         public static final String TABLE_NAME = "media";
         public static final String _CREATE =
                 "CREATE TABLE IF NOT EXISTS " + Media.TABLE_NAME + " (" +
-                        Media._ID + INT_TYPE + COMMA_SEP +
+                        Media._ID + INT_TYPE+"PRIMARY KEY AUTOINCREMENT," +
                         Media.PATH + TEXT_TYPE + COMMA_SEP +
                         Media.DATE + DATE_TYPE + " DEFAULT CURRENT_TIMESTAMP" + COMMA_SEP +
                         Media.PLACE_ID + INT_TYPE + " NOT NULL" + COMMA_SEP +
@@ -138,8 +138,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
         int mid = c.getInt(c.getColumnIndex(Media._ID));
 
-        String where = Media._ID + " = ?";
-        String[] whereArgs = {Integer.toString(mid)};
+        String where = Media.PATH + " = ?";
+        String[] whereArgs = {path};
         return db.delete(DatabaseHelper.Media.TABLE_NAME, where, whereArgs);
     }
 
