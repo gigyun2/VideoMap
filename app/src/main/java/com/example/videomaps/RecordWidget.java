@@ -44,6 +44,7 @@ public class RecordWidget extends AppWidgetProvider {
 
     @Override
     public void onEnabled(Context context) {
+        // Enter relevant functionality for when the last widget is enabled
     }
 
     @Override

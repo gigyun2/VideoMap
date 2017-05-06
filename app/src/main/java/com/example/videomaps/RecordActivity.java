@@ -72,6 +72,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
     private Button switchButton;
 
     private int rotation;
+    private int result;
     private int pid;
     private double mLat;
     private double mLng;
@@ -367,7 +368,6 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
             case Surface.ROTATION_270: degrees = 270; break;
         }
 
-        int result;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
             result = (360 - result) % 360;  // compensate the mirror
@@ -424,6 +424,7 @@ public class RecordActivity extends MapActivity implements TextureView.SurfaceTe
                 mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
                 mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                 mMediaRecorder.setProfile(profile);
+                mCamera.setDisplayOrientation(result);
                 mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO);
                 if (mOutputFile == null)
                     return false;
